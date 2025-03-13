@@ -1,4 +1,4 @@
-const baseUrl = process.env.VITE_API_URL;
+const baseUrl = import.meta.env.VITE_BASE_URL;
 // Define your API endpoint
 export const apiEndpoint = {
   slide: `${baseUrl}/api/slide`,
@@ -12,3 +12,4 @@ export const apiEndpoint = {
   user: `${baseUrl}/api/user`,
   deleteImage: `${baseUrl}/api/cloudinary/destroy`,
 };
+
