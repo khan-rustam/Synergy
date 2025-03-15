@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Keyboard as Billboard, Calendar, Palette, Megaphone, BarChart, Globe, Monitor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-// Define types for service card properties
+// Service card properties
 interface ServiceCardProps {
   icon: React.ReactNode;
   title: string;
@@ -13,21 +13,12 @@ interface ServiceCardProps {
   delay: number;
 }
 
-/**
- * ServiceCard Component
- * Displays information about a single service with animation
- * @param {React.ReactNode} icon - Icon to display
- * @param {string} title - Service title
- * @param {string} description - Service description
- * @param {string[]} features - List of features/benefits
- * @param {number} delay - Animation delay multiplier
- */
+// Service card component
 const ServiceCard: React.FC<ServiceCardProps> = memo(({ icon, title, description, features, delay }) => {
-  // Use intersection observer to trigger animation when card is in view
   const { ref, inView } = useInView({
-    triggerOnce: false, // Only trigger once
-    threshold: 0.05, // Trigger when just 1% of element is visible
-    rootMargin: '100px 0px', // Start detecting 150px before element enters viewport
+    triggerOnce: false,
+    threshold: 0.05,
+    rootMargin: '100px 0px',
   });
 
   return (
@@ -37,23 +28,20 @@ const ServiceCard: React.FC<ServiceCardProps> = memo(({ icon, title, description
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ 
         duration: 0.4, 
-        delay: delay * 0.08, // Reduced delay between cards
+        delay: delay * 0.08,
         ease: "easeOut" 
       }}
       className="bg-white rounded-xl shadow-xl p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group"
     >
-      {/* Service icon */}
       <div className="w-16 h-16 rounded-full bg-synergy-red/10 flex items-center justify-center mb-6 group-hover:bg-synergy-red transition-colors duration-300">
         <div className="text-synergy-red group-hover:text-white transition-colors duration-300">
           {icon}
         </div>
       </div>
 
-      {/* Service title and description */}
       <h3 className="text-xl font-heading font-bold text-synergy-dark mb-3">{title}</h3>
       <p className="text-gray-600 mb-6">{description}</p>
 
-      {/* Feature list */}
       <ul className="space-y-2 mb-6">
         {features.map((feature, index) => (
           <li key={index} className="flex items-start">
@@ -68,22 +56,16 @@ const ServiceCard: React.FC<ServiceCardProps> = memo(({ icon, title, description
   );
 });
 
-// Display name for debugging
 ServiceCard.displayName = 'ServiceCard';
 
-/**
- * Services Page Component
- * Displays all available services with animations and descriptions
- */
 const Services: React.FC = () => {
-  // Hero section animation with improved settings
   const { ref, inView } = useInView({
     triggerOnce: false,
     threshold: 0.01,
-    rootMargin: '100px 0px', // Start detecting 150px before element enters viewport
+    rootMargin: '100px 0px',
   });
 
-  // Define services data with memoization to prevent unnecessary re-renders
+  // Services data
   const services = useMemo(() => [
     {
       icon: <Billboard className="h-8 w-8" />,
@@ -177,14 +159,12 @@ const Services: React.FC = () => {
       ],
       delay: 6
     },
-
   ], []);
 
   return (
     <div className="pt-10 min-h-screen bg-synergy-light/50">
       {/* Hero Section */}
       <section className="relative h-[40vh] flex items-center justify-center overflow-hidden">
-        {/* Background image with lazy loading */}
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1504805572947-34fad45aed93?q=80&w=2607&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
@@ -196,7 +176,6 @@ const Services: React.FC = () => {
           <div className="absolute inset-0 bg-synergy-dark/70"></div>
         </div>
 
-        {/* Hero content with animation */}
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 20 }}
@@ -212,7 +191,7 @@ const Services: React.FC = () => {
         </motion.div>
       </section>
 
-      {/* Services Grid Section with improved animation */}
+      {/* Services Grid Section */}
       <motion.section 
         className="py-10"
         initial={{ opacity: 0 }}
@@ -221,7 +200,6 @@ const Services: React.FC = () => {
         transition={{ duration: 0.4 }}
       >
         <div className="container mx-auto px-4">
-          {/* Service cards grid with staggered animation */}
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             initial={{ opacity: 0 }}
@@ -240,7 +218,6 @@ const Services: React.FC = () => {
             ))}
           </motion.div>
 
-          {/* CTA section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -264,5 +241,4 @@ const Services: React.FC = () => {
   );
 };
 
-// Use memo to prevent unnecessary re-renders
 export default memo(Services);

@@ -2,7 +2,7 @@ import React, { lazy, Suspense, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Loader from '../components/common/Loader';
 
-// Add gradient styles
+// Gradient styles
 const headingGradientStyle = {
   background: 'linear-gradient(135deg, #1a1a1a 0%, #333333 100%)',
   WebkitBackgroundClip: 'text',
@@ -17,14 +17,13 @@ const accentGradientStyle = {
   backgroundClip: 'text'
 };
 
-// Implement route-based code splitting with prefetch hints
+// Lazy-loaded components
 const HeroSection = lazy(() => {
-  // Add prefetch hint for critical component
   const link = document.createElement('link');
   link.rel = 'prefetch';
   link.href = '/components/HomePage/HeroSection';
   document.head.appendChild(link);
-  return import(/* webpackChunkName: "hero" */ '../components/HomePage/HeroSection');
+  return import('../components/HomePage/HeroSection');
 });
 
 const ServicesSection = lazy(() => {
@@ -32,19 +31,17 @@ const ServicesSection = lazy(() => {
   link.rel = 'prefetch';
   link.href = '/components/HomePage/ServicesSection';
   document.head.appendChild(link);
-  return import(/* webpackChunkName: "services" */ '../components/HomePage/ServicesSection');
+  return import('../components/HomePage/ServicesSection');
 });
 
-// Group related sections into a single chunk for better caching
-const BlogsSection = lazy(() => import(/* webpackChunkName: "content" */ '../components/HomePage/BlogsSection'));
-const ClientsSection = lazy(() => import(/* webpackChunkName: "content" */ '../components/HomePage/ClientsSection'));
-const TestimonialsSection = lazy(() => import(/* webpackChunkName: "social" */ '../components/HomePage/TestimonialsSection'));
-const InstagramFeedSection = lazy(() => import(/* webpackChunkName: "social" */ '../components/HomePage/InstagramFeedSection'));
+const BlogsSection = lazy(() => import('../components/HomePage/BlogsSection'));
+const ClientsSection = lazy(() => import('../components/HomePage/ClientsSection'));
+const TestimonialsSection = lazy(() => import('../components/HomePage/TestimonialsSection'));
+const InstagramFeedSection = lazy(() => import('../components/HomePage/InstagramFeedSection'));
 
-// Preload all components immediately
+// Preload all components
 const preloadAllComponents = () => {
   if (typeof window !== 'undefined') {
-    // Preload all components in parallel
     import('../components/HomePage/HeroSection');
     import('../components/HomePage/ServicesSection');
     import('../components/HomePage/BlogsSection');
@@ -57,20 +54,21 @@ const preloadAllComponents = () => {
 // Initialize preloading
 preloadAllComponents();
 
-// Optimized animation variants with minimal delay
+// Animation variants
 const sectionVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.3,
-      ease: 'easeOut'
+      duration: 0.2,
+      ease: 'easeOut',
+      delay: 0
     }
   }
 };
 
-// Optimized loader component with framer-motion animations
+// Section loader component
 const SectionLoader: React.FC<{ message?: string }> = ({ message = "Loading..." }) => {
   return (
     <div className="flex flex-col items-center justify-center py-20">
@@ -101,13 +99,12 @@ const SectionLoader: React.FC<{ message?: string }> = ({ message = "Loading..." 
 };
 
 const Home: React.FC = () => {
-  // Use Intersection Observer for better performance
+  // Use Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            // Mark section as visible when it enters viewport
             entry.target.classList.add('is-visible');
           }
         });
@@ -115,7 +112,6 @@ const Home: React.FC = () => {
       { threshold: 0.1 }
     );
 
-    // Observe all sections
     document.querySelectorAll('section[id]').forEach(section => {
       observer.observe(section);
     });
@@ -125,7 +121,6 @@ const Home: React.FC = () => {
 
   return (
     <>
-      {/* Critical content - Load immediately */}
       <section id="hero">
         <Suspense fallback={<SectionLoader message="Loading hero..." />}>
           <motion.div
@@ -146,14 +141,13 @@ const Home: React.FC = () => {
             variants={sectionVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
+            viewport={{ once: true, amount: 0.01, margin: "200px 0px" }}
           >
             <ServicesSection />
           </motion.div>
         </Suspense>
       </section>
 
-      {/* Load all remaining sections immediately */}
       <section id="blogs">
         <Suspense fallback={<SectionLoader message="Loading blogs..." />}>
           <motion.div

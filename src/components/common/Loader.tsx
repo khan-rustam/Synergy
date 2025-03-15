@@ -35,25 +35,7 @@ const Loader: React.FC<LoaderProps> = ({
       }
     }
   };
-
-  // Create a pulsing effect for the inner circle
-  const pulseVariants = {
-    initial: {
-      scale: 0.8,
-      opacity: 0.3,
-    },
-    animate: {
-      scale: [0.8, 1, 0.8],
-      opacity: [0.3, 0.6, 0.3],
-      transition: {
-        duration: 2,
-        ease: "easeInOut",
-        repeat: Infinity,
-        repeatType: "loop" as const
-      }
-    }
-  };
-
+    
   const parsedSize = parseInt(width.replace('px', ''));
   const borderWidth = Math.max(3, Math.floor(parsedSize / 12)); // Responsive border width
 
@@ -66,32 +48,7 @@ const Loader: React.FC<LoaderProps> = ({
         transition={{ duration: 0.3 }}
       >
         <div className="relative" style={{ width, height }}>
-          {/* Static background circle */}
-          <div 
-            className="absolute inset-0 rounded-full"
-            style={{ 
-              border: `${borderWidth}px solid rgba(243, 244, 246, 0.5)`,
-              width: "100%",
-              height: "100%"
-            }}
-          />
           
-          {/* Pulsing inner circle */}
-          <motion.div
-            className="absolute"
-            style={{
-              width: `calc(100% - ${borderWidth * 4}px)`,
-              height: `calc(100% - ${borderWidth * 4}px)`,
-              top: `${borderWidth * 2}px`,
-              left: `${borderWidth * 2}px`,
-              backgroundColor: color,
-              borderRadius: "50%",
-              opacity: 0.3
-            }}
-            variants={pulseVariants}
-            initial="initial"
-            animate="animate"
-          />
           
           {/* Spinning outer circle */}
           <motion.div

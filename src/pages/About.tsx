@@ -2,7 +2,7 @@ import React from 'react';
 import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
 
-// Add gradient styles
+// Gradient styles
 const headingGradientStyle = {
   background: 'linear-gradient(135deg, #1a1a1a 0%, #333333 100%)',
   WebkitBackgroundClip: 'text',
@@ -34,7 +34,7 @@ const About: React.FC = () => {
   });
 
   return (
-    <div className="pt-20">
+    <div className="pt-14">
       {/* Hero Section */}
       <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
@@ -146,7 +146,7 @@ const About: React.FC = () => {
       {/* Team Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          {/* Leadership Team - Three Pillars */}
+          {/* Leadership Team - Four Pillars */}
           <div 
             ref={teamRef}
             className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 ${teamInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
@@ -155,7 +155,7 @@ const About: React.FC = () => {
               className="text-3xl md:text-4xl font-heading font-bold mb-4"
               style={headingGradientStyle}
             >
-              The Three Pillars of Synergy OOH
+              The Four Pillars of Synergy OOH
             </motion.h2>
             <motion.div
               className="w-20 h-1 mx-auto mb-6"
@@ -168,22 +168,31 @@ const About: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
             {[
               {
                 name: "PRASHANT KAUSHAL",
                 position: "Founder & CEO",
-                image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                bio: "A visionary leader with over 15 years of experience in the advertising industry, driving innovation and excellence in OOH advertising across Rajasthan."
+              },
+              {
+                name: "ARCHANA RAWAT",
+                position: "Co-Founder",
+                image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                bio: "A strategic thinker with exceptional business acumen who has been instrumental in shaping the company's growth and client relationships since its inception."
               },
               {
                 name: "SUNNY DHALIA",
                 position: "Chief Technology Officer",
-                image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                bio: "A tech innovator who leads our digital transformation initiatives, integrating cutting-edge technology with traditional OOH advertising for maximum impact."
               },
               {
                 name: "AMIT TRIVEDI",
                 position: "Chief Marketing Officer",
-                image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                bio: "A marketing strategist with deep industry knowledge who develops comprehensive campaigns that deliver measurable results for our diverse client portfolio."
               }
             ].map((member, index) => (
               <motion.div 
@@ -207,7 +216,7 @@ const About: React.FC = () => {
                   <h3 className="text-xl font-heading font-bold text-white mb-2">{member.name}</h3>
                   <p className="text-synergy-light mb-4">{member.position}</p>
                   <p className="text-white/80 text-center text-sm">
-                    A visionary leader with extensive experience in the advertising industry, driving innovation and excellence.
+                    {member.bio}
                   </p>
                 </div>
               </motion.div>

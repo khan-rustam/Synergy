@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { format } from "date-fns";
 import { apiEndpoint } from '../components/admin/config/api';
 
-// Define blog interface for better type safety
+// Define blog interface
 interface Blog {
   _id: string;
   title: string;
@@ -13,7 +13,6 @@ interface Blog {
   createdAt: string;
   author: string;
   tags: string[];
-  // Add optional fields that might be in the API response
   created_at?: string;
   date?: string;
 }
@@ -28,12 +27,7 @@ const BlogPost: React.FC<BlogPostProps> = ({ blog }) => {
     threshold: 0.1,
   });
 
-  /**
-   * Strips HTML tags from content and truncates to specified number of lines
-   * @param html - HTML content to strip and truncate
-   * @param maxLines - Maximum number of lines to display (default: 3)
-   * @param charsPerLine - Estimated characters per line (default: 80)
-   */
+  // Strip HTML tags and truncate content
   const stripHtmlAndTruncate = useCallback((html: string, maxLines: number = 3, charsPerLine: number = 80) => {
     if (!html) return '';
 
@@ -97,74 +91,53 @@ const Blog: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // const { ref, inView } = useInView({
-  //   triggerOnce: true,
-  //   threshold: 0.1,
-  // });
-
-  /**
-   * Fetches all blogs from API and sorts them by creation date (newest first)
-   * Uses AbortController for cleanup on component unmount
-   */
+  // Fetch all blogs
   const getBlogs = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    // Create abort controller for cleanup
     const abortController = new AbortController();
     const signal = abortController.signal;
 
     try {
-      // Fetch blogs with abort signal
       const res = await fetch(`${apiEndpoint.blog}/get-all`, { signal });
 
-      // Handle HTTP errors
       if (!res.ok) {
         throw new Error(`Failed to fetch blogs: ${res.status} ${res.statusText}`);
       }
 
-      // Parse response
       const data = await res.json();
       const response = data.data;
 
       // Sort blogs by creation date (newest first)
       const sortedBlogs = Array.isArray(response)
         ? response.sort((a: Blog, b: Blog) => {
-          // Get dates, with fallbacks for different field names
           const dateA = new Date(a.createdAt || a.created_at || a.date || 0);
           const dateB = new Date(b.createdAt || b.created_at || b.date || 0);
-          return dateB.getTime() - dateA.getTime(); // Descending order (newest first)
+          return dateB.getTime() - dateA.getTime();
         })
         : [];
 
-      // Update state with sorted blogs
       setBlogs(sortedBlogs);
     } catch (error: any) {
-      // Only set error if not aborted
       if (error.name !== 'AbortError') {
         console.error("Error fetching blogs:", error);
         setError(`Failed to load blogs: ${error.message || "Unknown error"}`);
       }
     } finally {
-      // Only update loading state if not aborted
       if (!signal.aborted) {
         setLoading(false);
       }
     }
   }, []);
 
-  // Fetch blogs on component mount with cleanup
+  // Fetch blogs on component mount
   useEffect(() => {
     getBlogs();
-
-    // Cleanup function to abort fetch on unmount
-    return () => {
-      // AbortController cleanup would happen here if we exposed it
-    };
   }, [getBlogs]);
 
   return (
-    <div className="pt-20">
+    <div className="pt-14">
       {/* Hero Section */}
       <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
@@ -188,18 +161,6 @@ const Blog: React.FC = () => {
       {/* Blog Posts */}
       <section className="py-20 bg-synergy-light/50">
         <div className="container mx-auto px-4">
-          {/* <div
-            ref={ref}
-            className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
-          >
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-synergy-dark mb-4">Latest Articles</h2>
-            <div className="w-20 h-1 bg-synergy-red mx-auto mb-6"></div>
-            <p className="text-lg text-gray-600">
-              Stay updated with the latest trends, strategies, and insights in out-of-home advertising and brand experiences.
-            </p>
-          </div> */}
-
           {/* Status Messages */}
           {loading && (
             <div className="text-center mb-8">

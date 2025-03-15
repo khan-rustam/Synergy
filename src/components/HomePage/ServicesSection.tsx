@@ -15,7 +15,8 @@ interface ServiceCardProps {
 const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, category, delay }) => {
   const { ref, inView } = useInView({
     triggerOnce: true,
-    threshold: 0.1,
+    threshold: 0.01,
+    rootMargin: '200px 0px',
   });
 
   return (
@@ -25,7 +26,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
         transform-gpu hover:scale-105 ${
         inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
       }`}
-      style={{ transitionDelay: `${delay * 0.1}s` }}
+      style={{ transitionDelay: `${delay * 0.05}s` }}
     >
       <div className="relative preserve-3d group-hover:rotate-y-12 duration-700 w-full h-full p-8">
         {/* Icon Circle */}
@@ -58,27 +59,30 @@ const ServicesSection: React.FC = () => {
 
   useEffect(() => {
     if (sectionRef.current && headingRef.current && cardsRef.current) {
-      // Clip path reveal for the heading
+      // Clip path reveal for the heading with earlier trigger
       clipPathReveal(headingRef.current, {
         trigger: sectionRef.current,
-        start: 'top 80%'
+        start: 'top 90%',
+        toggleActions: 'play none none none'
       });
 
-      // 3D rotation for service cards
+      // 3D rotation for service cards with earlier trigger
       const cards = Array.from(cardsRef.current.children);
       cards.forEach((card, index) => {
         rotateIn3D(card, {
-          trigger: card,
-          start: 'top 85%',
+          trigger: sectionRef.current,
+          start: 'top 90%',
+          toggleActions: 'play none none none'
         });
       });
 
-      // Scale reveal for images
+      // Scale reveal for images with earlier trigger
       imageRefs.current.forEach((img, index) => {
         if (img) {
           scaleReveal(img, {
-            trigger: img,
-            start: 'top 85%'
+            trigger: sectionRef.current,
+            start: 'top 90%',
+            toggleActions: 'play none none none'
           });
         }
       });
@@ -91,28 +95,28 @@ const ServicesSection: React.FC = () => {
       title: "Billboard Advertising",
       category: "Outdoor",
       description: "Strategic placement of your brand on high-visibility billboards across prime locations.",
-      delay: 1
+      delay: 0
     },
     {
       icon: <Calendar className="w-8 h-8" />,
       title: "Event Management",
       category: "Events",
       description: "End-to-end planning and execution of brand events that create memorable experiences.",
-      delay: 2
+      delay: 1
     },
     {
       icon: <Palette className="w-8 h-8" />,
       title: "Brand Identity",
       category: "Branding",
       description: "Comprehensive branding solutions that establish a strong market presence.",
-      delay: 3
+      delay: 2
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: "Digital Integration",
       category: "Digital",
       description: "Seamless integration of digital elements with traditional OOH advertising.",
-      delay: 4
+      delay: 3
     }
   ];
 

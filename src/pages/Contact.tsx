@@ -114,7 +114,7 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="pt-20">
+    <div className="pt-14">
       {/* Hero Section */}
       <section className="relative h-[40vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
@@ -279,8 +279,6 @@ const SubmitButton: React.FC<{ isSubmitting: boolean }> = ({ isSubmitting }) => 
     )}
   </button>
 );
-
-
 
 const ContactInfoCard: React.FC = () => (
   <div className="bg-synergy-blue/10 rounded-xl p-8">
