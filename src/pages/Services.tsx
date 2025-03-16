@@ -1,8 +1,116 @@
-import React, { memo, useMemo } from 'react';
-import { useInView } from 'react-intersection-observer';
+import React, { memo, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Keyboard as Billboard, Calendar, Palette, Megaphone, BarChart, Globe, Monitor } from 'lucide-react';
+import { Keyboard as Billboard, Calendar, Palette, Megaphone, BarChart, Globe, Monitor, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PageTransition from '../components/common/PageTransition';
+import ScrollReveal from '../components/common/ScrollReveal';
+import LazyImage from '../components/common/LazyImage';
+
+// Particle component for header animation
+const HeaderParticles: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Set canvas dimensions
+    const setCanvasDimensions = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = canvas.parentElement?.offsetHeight || 400;
+    };
+    
+    setCanvasDimensions();
+    window.addEventListener('resize', setCanvasDimensions);
+    
+    // Particle properties
+    const particlesArray: {
+      x: number;
+      y: number;
+      size: number;
+      speedX: number;
+      speedY: number;
+      color: string;
+      alpha: number;
+    }[] = [];
+    
+    // Create particles
+    const createParticles = () => {
+      const particleCount = Math.floor(window.innerWidth / 30); // Responsive particle count
+      
+      for (let i = 0; i < particleCount; i++) {
+        const size = Math.random() * 3 + 1;
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const speedX = Math.random() * 0.2 - 0.1;
+        const speedY = Math.random() * 0.2 - 0.1;
+        
+        // Use brand colors with varying opacity
+        const colors = [
+          'rgba(239, 68, 68, 0.4)', // Red
+          'rgba(255, 255, 255, 0.3)', // White
+          'rgba(200, 30, 30, 0.3)', // Darker red
+        ];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const alpha = Math.random() * 0.5 + 0.1;
+        
+        particlesArray.push({
+          x,
+          y,
+          size,
+          speedX,
+          speedY,
+          color,
+          alpha
+        });
+      }
+    };
+    
+    createParticles();
+    
+    // Animation loop
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      for (let i = 0; i < particlesArray.length; i++) {
+        const p = particlesArray[i];
+        
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Update position
+        p.x += p.speedX;
+        p.y += p.speedY;
+        
+        // Boundary check
+        if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+      }
+      
+      requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', setCanvasDimensions);
+    };
+  }, []);
+  
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="absolute inset-0 pointer-events-none"
+    />
+  );
+};
 
 // Service card properties
 interface ServiceCardProps {
@@ -15,17 +123,11 @@ interface ServiceCardProps {
 
 // Service card component
 const ServiceCard: React.FC<ServiceCardProps> = memo(({ icon, title, description, features, delay }) => {
-  const { ref, inView } = useInView({
-    triggerOnce: false,
-    threshold: 0.05,
-    rootMargin: '100px 0px',
-  });
-
   return (
     <motion.div
-      ref={ref}
       initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "0px 0px -100px 0px" }}
       transition={{ 
         duration: 0.4, 
         delay: delay * 0.08,
@@ -52,192 +154,199 @@ const ServiceCard: React.FC<ServiceCardProps> = memo(({ icon, title, description
           </li>
         ))}
       </ul>
+
+      <Link 
+        to="/contact" 
+        className="inline-flex items-center text-synergy-red hover:text-synergy-dark transition-colors font-medium"
+      >
+        Learn More
+        <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </Link>
     </motion.div>
   );
 });
 
-ServiceCard.displayName = 'ServiceCard';
-
 const Services: React.FC = () => {
-  const { ref, inView } = useInView({
-    triggerOnce: false,
-    threshold: 0.01,
-    rootMargin: '100px 0px',
-  });
-
-  // Services data
+  // Define services data
   const services = useMemo(() => [
     {
-      icon: <Billboard className="h-8 w-8" />,
+      icon: <Billboard size={24} />,
       title: "Billboard Advertising",
-      description: "Dominate the skyline with eye-catching billboard placements in prime locations.",
+      description: "Maximize visibility with strategic billboard placements in high-traffic locations.",
       features: [
-        "Strategic placement analysis",
-        "High-visibility locations",
-        "Impact measurement",
-        "Demographic targeting",
-        "Custom design options"
-      ],
-      delay: 0
+        "Premium locations",
+        "High-impact designs",
+        "Strategic placement",
+        "Demographic targeting"
+      ]
     },
     {
-      icon: <Calendar className="h-8 w-8" />,
-      title: "Event Marketing",
-      description: "Create memorable brand experiences through strategic event marketing.",
+      icon: <Calendar size={24} />,
+      title: "Event Branding",
+      description: "Create memorable brand experiences at events and exhibitions.",
       features: [
-        "Custom event planning",
-        "Brand activation",
-        "Experiential marketing",
-        "Post-event analytics",
-        "Integrated campaigns"
-      ],
-      delay: 1
+        "Custom booth designs",
+        "Promotional materials",
+        "Interactive displays",
+        "Brand ambassadors"
+      ]
     },
     {
-      icon: <Monitor className="h-8 w-8" />,
-      title: "Digital Marketing",
-      description: "Enhance your OOH campaigns with integrated digital marketing strategies.",
-      features: [
-        "Search engine optimization (SEO)",
-        "Pay-per-click advertising (PPC)",
-        "Social media management",
-        "Content marketing",
-        "Email marketing campaigns",
-        "Analytics & performance tracking"
-      ],
-      delay: 2
-    },
-    {
-      icon: <Palette className="h-8 w-8" />,
+      icon: <Palette size={24} />,
       title: "Creative Design",
-      description: "Transform your message with cutting-edge design that captures attention.",
+      description: "Eye-catching designs that communicate your brand message effectively.",
       features: [
-        "Brand identity development",
+        "Brand identity",
         "Visual storytelling",
-        "Multi-format design",
-        "Interactive elements",
-        "Design optimization"
-      ],
-      delay: 3
+        "Print & digital design",
+        "Campaign concepts"
+      ]
     },
     {
-      icon: <Megaphone className="h-8 w-8" />,
+      icon: <Megaphone size={24} />,
       title: "Transit Advertising",
-      description: "Reach audiences on the move with strategic transit advertising placements.",
+      description: "Reach audiences on the move with transit and vehicle advertising.",
       features: [
-        "Bus & subway advertising",
-        "Taxi top displays",
+        "Bus & train wraps",
+        "Taxi advertising",
         "Station domination",
-        "Route optimization",
-        "Frequency analytics"
-      ],
-      delay: 4
+        "Route optimization"
+      ]
     },
     {
-      icon: <BarChart className="h-8 w-8" />,
+      icon: <BarChart size={24} />,
       title: "Analytics & Reporting",
-      description: "Measure performance with advanced analytics to optimize your advertising ROI.",
+      description: "Measure campaign performance with detailed analytics and insights.",
       features: [
-        "Real-time performance data",
-        "Audience insights",
-        "Competitive analysis",
-        "Attribution modeling",
-        "ROI optimization"
-      ],
-      delay: 5
+        "Audience metrics",
+        "Engagement tracking",
+        "ROI analysis",
+        "Performance reports"
+      ]
     },
     {
-      icon: <Globe className="h-8 w-8" />,
-      title: "Street Furniture Advertising",
-      description: "Engage audiences at street level with contextually relevant placements.",
+      icon: <Globe size={24} />,
+      title: "Digital Integration",
+      description: "Combine traditional OOH with digital strategies for maximum impact.",
       features: [
-        "Bus shelter advertising",
-        "Urban panel displays",
-        "Kiosk placements",
-        "Neighborhood targeting",
-        "Interactive options"
-      ],
-      delay: 6
-    },
+        "QR code integration",
+        "Social media tie-ins",
+        "AR experiences",
+        "Cross-channel campaigns"
+      ]
+    }
   ], []);
 
   return (
-    <div className="pt-10 min-h-screen bg-synergy-light/50">
+    <PageTransition>
       {/* Hero Section */}
-      <section className="relative h-[40vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
+        {/* Background Image with Overlay */}
         <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1504805572947-34fad45aed93?q=80&w=2607&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Services"
-            className="w-full h-full object-cover"
-            loading="lazy"
-            decoding="async"
+          <LazyImage
+            src="https://images.unsplash.com/photo-1504805572947-34fad45aed93?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+            alt="Our Services"
+            className="w-full h-full"
+            objectFit="cover"
           />
-          <div className="absolute inset-0 bg-synergy-dark/70"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-synergy-dark/90 via-synergy-dark/80 to-synergy-dark/90"></div>
         </div>
-
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.5 }}
-          className="container mx-auto px-4 relative z-10 text-center"
-        >
-          <h1 className="text-4xl md:text-6xl font-heading font-bold text-white mb-6">Our Services</h1>
-          <div className="w-20 h-1 bg-synergy-red mx-auto mb-2"></div>
-          <p className="text-xl text-white max-w-3xl mx-auto">
-            We offer comprehensive out-of-home advertising solutions to elevate your brand and maximize your reach.
-          </p>
-        </motion.div>
+        
+        {/* Particles Animation */}
+        <div className="absolute inset-0">
+          <HeaderParticles />
+        </div>
+        
+        {/* Decorative Shapes */}
+        <div className="absolute top-20 left-10 w-20 h-20 rounded-full bg-synergy-red/20 blur-xl"></div>
+        <div className="absolute bottom-20 right-10 w-32 h-32 rounded-full bg-synergy-red/20 blur-xl"></div>
+        <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full bg-white/10 blur-lg"></div>
+        
+        {/* Glossy Circle */}
+        <div className="absolute left-1/4 bottom-1/4 w-40 h-40 rounded-full bg-gradient-to-tr from-synergy-red/20 to-white/5 backdrop-blur-sm border border-white/10"></div>
+        
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4">
+          <ScrollReveal className="text-center max-w-3xl mx-auto" variant="fadeUp">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="inline-block mb-4"
+            >
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
+                <Briefcase className="text-white h-8 w-8" />
+              </div>
+            </motion.div>
+            
+            <motion.h1 
+              className="text-5xl md:text-7xl font-heading font-bold text-white mb-6 tracking-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            >
+              Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-synergy-red to-red-400">Services</span>
+            </motion.h1>
+            
+            <motion.div 
+              className="w-24 h-1 bg-gradient-to-r from-synergy-red to-red-400 mx-auto mb-6"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 96 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            ></motion.div>
+            
+            <motion.p 
+              className="text-xl text-white/90 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            >
+              Comprehensive advertising solutions tailored to elevate your brand and drive results.
+              Discover how we can transform your marketing strategy.
+            </motion.p>
+          </ScrollReveal>
+        </div>
+        
+        {/* Bottom Wave */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" className="w-full h-auto">
+            <path 
+              fill="#ffffff" 
+              fillOpacity="1" 
+              d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"
+            ></path>
+          </svg>
+        </div>
       </section>
 
-      {/* Services Grid Section */}
-      <motion.section 
-        className="py-10"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.05, margin: "150px 0px" }}
-        transition={{ duration: 0.4 }}
-      >
+      {/* Services Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
+          <ScrollReveal className="text-center max-w-3xl mx-auto mb-16" variant="fadeUp">
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-synergy-dark mb-6">What We Offer</h2>
+            <div className="w-20 h-1 bg-synergy-red mx-auto mb-8"></div>
+            <p className="text-gray-600">
+              We provide a comprehensive range of advertising services designed to maximize your brand's visibility and impact.
+            </p>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <ServiceCard
-                key={`service-${index}`}
+                key={index}
                 icon={service.icon}
                 title={service.title}
                 description={service.description}
                 features={service.features}
-                delay={service.delay}
+                delay={index}
               />
             ))}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.5 }}
-            className="text-center mt-16"
-          >
-            <Link
-              to="/contact"
-              className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-synergy-red hover:bg-red-700 transition-colors"
-              aria-label="Get a Free Consultation"
-            >
-              Get a Free Consultation
-              <svg className="ml-2 -mr-1 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
-    </div>
+      </section>
+    </PageTransition>
   );
 };
 

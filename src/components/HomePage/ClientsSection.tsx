@@ -1,33 +1,58 @@
-import { motion } from "framer-motion";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 
-// Sample client logos - replace with actual logo URLs
-const clientLogos = [
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
-  "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png",
- 
-];
+interface ClientLogo {
+  _id: string;
+  imageUrl: string;
+}
 
 // LogoSlider Component
-const LogoSlider = ({ direction = 1 }) => {
+interface LogoSliderProps {
+  logos: ClientLogo[];
+  direction?: number;
+  delay?: number;
+}
+
+const LogoSlider: React.FC<LogoSliderProps> = ({ logos, direction = 1, delay = 0 }) => {
+  if (logos.length === 0) {
+    return null;
+  }
+
+  // Animation variants for logo items
+  const logoItemVariants = {
+    hover: {
+      scale: 1.1,
+      y: -5,
+      filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.1))",
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 10
+      }
+    },
+    tap: {
+      scale: 0.95,
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 10
+      }
+    }
+  };
+
   return (
     <div className="overflow-hidden relative w-full">
       <motion.div
         className="flex items-center"
+        initial={{ x: direction > 0 ? "0%" : "-100%" }}
         animate={{
-          x: direction > 0 ? ["0%", "-100%"] : ["-100%", "0%"],
+          x: direction > 0 ? ["-100%", "0%"] : ["0%", "-100%"],
         }}
         transition={{
-          duration: 20, // Adjust speed for smooth scrolling
+          duration: 40, // Slower for smoother scrolling
           repeat: Infinity,
           ease: "linear",
+          delay: delay
         }}
         style={{
           display: "flex",
@@ -35,14 +60,25 @@ const LogoSlider = ({ direction = 1 }) => {
         }}
       >
         {/* Rendering the logos twice to create a seamless loop */}
-        {[...clientLogos, ...clientLogos].map((logo, index) => (
-          <div key={index} className="w-32 h-16 flex-shrink-0 flex items-center justify-center mx-4">
+        {[...logos, ...logos].map((logo, index) => (
+          <motion.div 
+            key={index} 
+            className="w-60 h-28 flex-shrink-0 flex items-center justify-center mx-6 p-3 rounded-lg"
+            whileHover="hover"
+            whileTap="tap"
+            variants={logoItemVariants}
+          >
             <img
-              src={logo}
-              alt={`Client ${index % clientLogos.length + 1}`}
-              className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
+              src={logo.imageUrl}
+              alt={`Client ${index % logos.length + 1}`}
+              className="max-w-full max-h-full object-contain transition-all duration-300"
+              loading="lazy"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "https://via.placeholder.com/150x80?text=Logo";
+              }}
             />
-          </div>
+          </motion.div>
         ))}
       </motion.div>
     </div>
@@ -50,22 +86,294 @@ const LogoSlider = ({ direction = 1 }) => {
 };
 
 const ClientsSection = () => {
+  const [clientLogos, setClientLogos] = useState<ClientLogo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Animation controls
+  const controls = useAnimation();
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: false, amount: 0.2 });
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const handleViewChange = async () => {
+      if (!isMounted) return;
+      
+      if (isInView) {
+        await controls.start("visible");
+      } else {
+        await controls.start("hidden");
+      }
+    };
+    
+    handleViewChange();
+    
+    return () => {
+      isMounted = false;
+      // Properly stop any ongoing animations
+      controls.stop();
+    };
+  }, [controls, isInView]);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchClientLogos = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/client-logo/get-all`);
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch client logos");
+        }
+        
+        const data = await response.json();
+        
+        if (!isMounted) return;
+        
+        if (data.success && Array.isArray(data.data)) {
+          setClientLogos(data.data);
+        } else {
+          throw new Error("Invalid data format received from server");
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error("Error fetching client logos:", err);
+        setError("Failed to load client logos");
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchClientLogos();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fallback logos in case of error or empty response
+  const fallbackLogos = [
+    { _id: "1", imageUrl: "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png" },
+    { _id: "2", imageUrl: "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png" },
+    { _id: "3", imageUrl: "https://www.vhv.rs/dpng/d/560-5604430_adani-logo-transparent-hd-png-download.png" },
+  ];
+
+  // Only use fallback logos if there's an error and no logos were loaded
+  const logosToDisplay = clientLogos.length > 0 ? clientLogos : (isLoading ? [] : fallbackLogos);
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const titleVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+        duration: 0.8
+      }
+    }
+  };
+
+  const lineVariants = {
+    hidden: { width: 0 },
+    visible: {
+      width: "6rem",
+      transition: {
+        duration: 1,
+        delay: 0.3,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+        delay: 0.4,
+        duration: 0.6
+      }
+    }
+  };
+
+  const sliderContainerVariants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 80,
+        damping: 15,
+        delay: 0.6,
+        duration: 0.8
+      }
+    }
+  };
+
+  const decorationVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: {
+      opacity: 0.6,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+        delay: 0.2,
+        duration: 1
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <section ref={sectionRef} className="py-20 bg-gray-50 relative overflow-hidden">
+        <div className="container mx-auto px-4 text-center">
+          <motion.h2 
+            variants={titleVariants}
+            initial="hidden"
+            animate="visible"
+            className="text-3xl md:text-4xl font-heading font-bold text-synergy-dark mb-4"
+          >
+            Our Clients
+          </motion.h2>
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: "6rem" }}
+            transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="h-1.5 bg-synergy-red mx-auto mb-6"
+          ></motion.div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex justify-center items-center h-32"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-synergy-red/20 animate-ping"></div>
+              <div className="relative animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-synergy-red"></div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold text-synergy-dark mb-4">Our Clients</h2>
-          <div className="w-20 h-1 bg-synergy-red mx-auto mb-6"></div>
-          <p className="text-lg text-gray-600">
+    <section 
+      ref={sectionRef} 
+      className="py-20 bg-gray-50 relative overflow-hidden"
+    >
+      {/* Decorative elements */}
+      <motion.div
+        className="absolute top-20 left-10 w-64 h-64 rounded-full bg-synergy-red/5 blur-3xl"
+        variants={decorationVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+      />
+      <motion.div
+        className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-synergy-red/5 blur-3xl"
+        variants={decorationVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        transition={{ delay: 0.3 }}
+      />
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <motion.h2 
+            variants={titleVariants}
+            className="text-4xl md:text-5xl font-heading font-bold text-synergy-dark mb-4"
+          >
+            Our Clients
+          </motion.h2>
+          
+          <motion.div 
+            className="h-1.5 bg-synergy-red mx-auto mb-6"
+            variants={lineVariants}
+          ></motion.div>
+          
+          <motion.p 
+            variants={textVariants}
+            className="text-xl text-gray-600"
+          >
             We're proud to partner with some of the most renowned brands in the world, delivering exceptional results together.
-          </p>
-        </div>
-        <div className="space-y-12">
-          {/* First LogoSlider moving left */}
-          <LogoSlider direction={1} />
-          {/* Second LogoSlider moving right */}
-          <LogoSlider direction={-1} />
-        </div>
+          </motion.p>
+        </motion.div>
+        
+        {error && logosToDisplay.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center text-gray-500 py-8 bg-white/50 backdrop-blur-sm rounded-lg shadow-sm"
+          >
+            <p>Unable to load client logos. Please try again later.</p>
+            <button 
+              onClick={() => {
+                setIsLoading(true);
+                setError(null);
+                // Re-fetch client logos
+                fetch(`${import.meta.env.VITE_BASE_URL}/api/client-logo/get-all`)
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.success && Array.isArray(data.data)) {
+                      setClientLogos(data.data);
+                    }
+                    setIsLoading(false);
+                  })
+                  .catch(err => {
+                    console.error("Error re-fetching client logos:", err);
+                    setError("Failed to load client logos");
+                    setIsLoading(false);
+                  });
+              }}
+              className="mt-4 px-4 py-2 bg-synergy-red/10 text-synergy-red rounded-md hover:bg-synergy-red/20 transition-colors duration-300"
+            >
+              Try Again
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div 
+            variants={sliderContainerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="space-y-16"
+          >
+            {/* First LogoSlider moving left */}
+            <LogoSlider logos={logosToDisplay} direction={1} delay={0} />
+            {/* Second LogoSlider moving right */}
+            <LogoSlider logos={logosToDisplay} direction={-1} delay={0.5} />
+          </motion.div>
+        )}
       </div>
     </section>
   );

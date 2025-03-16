@@ -26,8 +26,6 @@ const Blog = lazy(() => import(/* webpackPrefetch: true */ './pages/Blog'));
 const Contact = lazy(() => import(/* webpackPrefetch: true */ './pages/Contact'));
 const BlogDetail = lazy(() => import(/* webpackPrefetch: true */ './pages/BlogDetail'));
 
-
-
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -132,7 +130,7 @@ const App: React.FC = () => {
       <div className="font-body">
         <Navbar />
         <ToastContainer limit={3} />
-        <Suspense fallback={<Loader width="70px" height="70px" fullScreen={true} color="#ff3366" showText={true} />}>
+        <Suspense fallback={<Loader fullScreen={true} showText={true} />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />

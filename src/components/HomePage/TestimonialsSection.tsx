@@ -1,10 +1,11 @@
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Autoplay } from 'swiper/modules';
+import { Pagination, Autoplay, EffectCoverflow } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
+import 'swiper/css/effect-coverflow';
 import { apiEndpoint } from '../admin/config/api';
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 
 interface TestimonialProps {
   clientName: string;
@@ -12,6 +13,7 @@ interface TestimonialProps {
   description: string;
   imageUrl: string;
   rating: number;
+  index: number;
 }
 
 // Animation variants
@@ -20,8 +22,8 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.3
+      staggerChildren: 0.1,
+      delayChildren: 0.2
     }
   }
 };
@@ -29,43 +31,79 @@ const containerVariants = {
 const cardVariants = {
   hidden: { 
     opacity: 0, 
-    y: 20,
-    scale: 0.95
+    y: 50,
+    scale: 0.9,
+    rotateY: -5
   },
   visible: { 
     opacity: 1, 
     y: 0,
     scale: 1,
+    rotateY: 0,
     transition: {
       type: "spring",
       stiffness: 100,
       damping: 15,
       duration: 0.6
     }
-  }
-};
-
-const imageVariants = {
-  hidden: { scale: 0.8, opacity: 0 },
-  visible: { 
-    scale: 1, 
-    opacity: 1,
+  },
+  hover: {
+    y: -10,
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
     transition: {
       type: "spring",
-      stiffness: 200,
+      stiffness: 400,
       damping: 20
     }
   }
 };
 
+const imageVariants = {
+  hidden: { scale: 0.8, opacity: 0, y: 20 },
+  visible: { 
+    scale: 1, 
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 20,
+      delay: 0.1
+    }
+  },
+  hover: {
+    scale: 1.05,
+    boxShadow: "0 0 20px rgba(255, 51, 102, 0.3)",
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 15
+    }
+  }
+};
+
 const textVariants = {
-  hidden: { opacity: 0, x: -20 },
+  hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
-    x: 0,
+    y: 0,
     transition: {
-      duration: 0.5,
-      ease: "easeOut"
+      duration: 0.4,
+      ease: "easeOut",
+      delay: 0.2
+    }
+  }
+};
+
+const quoteVariants = {
+  hidden: { opacity: 0, scale: 0 },
+  visible: { 
+    opacity: 0.1, 
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+      delay: 0.1
     }
   }
 };
@@ -76,15 +114,72 @@ const starVariants = {
     scale: 1,
     opacity: 1,
     transition: {
-      delay: i * 0.1,
+      delay: 0.2 + (i * 0.05),
       type: "spring",
       stiffness: 200,
       damping: 15
     }
-  })
+  }),
+  hover: {
+    scale: 1.2,
+    rotate: [0, 10, -10, 0],
+    transition: {
+      duration: 0.5
+    }
+  }
 };
 
-const Testimonial: React.FC<TestimonialProps> = ({ clientName, companyName, description, imageUrl, rating }) => {
+// Testimonial skeleton component for loading state
+const TestimonialSkeleton: React.FC<{ index: number }> = ({ index }) => {
+  return (
+    <motion.div
+      className="bg-white rounded-xl shadow-lg p-6 md:p-8 relative overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        transition: { 
+          duration: 0.3, 
+          delay: index * 0.1 
+        }
+      }}
+    >
+      {/* Large quote mark in background */}
+      <div className="absolute -top-2 -left-2 text-9xl text-gray-100 pointer-events-none font-serif opacity-10">
+        "
+      </div>
+      
+      <div className="relative z-10">
+        {/* Client image and info skeleton */}
+        <div className="flex items-center mb-6">
+          <div className="w-16 h-16 rounded-full overflow-hidden mr-4 bg-gray-200 animate-pulse"></div>
+          
+          <div>
+            <div className="h-5 w-32 bg-gray-200 rounded mb-1 animate-pulse"></div>
+            <div className="h-4 w-24 bg-gray-100 rounded mb-1 animate-pulse"></div>
+            <div className="flex mt-1 space-x-1">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-4 h-4 rounded-full bg-gray-200 animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Testimonial text skeleton */}
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-100 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-100 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse"></div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const Testimonial: React.FC<TestimonialProps> = ({ clientName, companyName, description, imageUrl, rating, index }) => {
+  const cardRef = useRef(null);
+  const isInView = useInView(cardRef, { once: false, amount: 0.3 });
+  
   // Generate star rating display with animation
   const renderStars = () => {
     const stars = [];
@@ -94,7 +189,8 @@ const Testimonial: React.FC<TestimonialProps> = ({ clientName, companyName, desc
           key={i}
           variants={starVariants}
           initial="hidden"
-          animate="visible"
+          animate={isInView ? "visible" : "hidden"}
+          whileHover="hover"
           custom={i}
           className={`text-xl ${i <= rating ? 'text-yellow-500' : 'text-gray-300'}`}
         >
@@ -107,55 +203,55 @@ const Testimonial: React.FC<TestimonialProps> = ({ clientName, companyName, desc
 
   return (
     <motion.div
+      ref={cardRef}
+      className="bg-white rounded-xl shadow-lg p-6 md:p-8 relative overflow-hidden"
       variants={cardVariants}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.1 }}
-      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
-      className="bg-white rounded-xl shadow-lg p-6 h-full flex flex-col transform-gpu"
+      animate={isInView ? "visible" : "hidden"}
+      whileHover="hover"
     >
-      <div className="flex flex-col items-start">
-        <div className="flex items-center w-full mb-4">
-          <motion.div
+      {/* Large quote mark in background */}
+      <motion.div 
+        className="absolute -top-2 -left-2 text-9xl text-gray-100 pointer-events-none font-serif"
+        variants={quoteVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+      >
+        "
+      </motion.div>
+      
+      <div className="relative z-10">
+        {/* Client image and info */}
+        <div className="flex items-center mb-6">
+          <motion.div 
+            className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-synergy-red/20"
             variants={imageVariants}
-            className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-synergy-light"
+            whileHover="hover"
           >
-            <motion.img 
-              src={imageUrl} 
+            <img 
+              src={imageUrl || 'https://via.placeholder.com/150'} 
               alt={clientName} 
-              className="w-full h-full object-cover" 
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "https://via.placeholder.com/150?text=" + clientName.charAt(0);
-              }}
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.3 }}
+              className="w-full h-full object-cover"
+              loading="lazy"
             />
           </motion.div>
           
-          <div className="ml-4 flex flex-col">
-            <motion.h3 
-              variants={textVariants}
-              className="font-heading font-bold text-xl text-synergy-dark"
-            >
-              {clientName}
-            </motion.h3>
-            <motion.p 
-              variants={textVariants}
-              className="text-sm text-gray-600 mb-1"
-            >
-              {companyName}
-            </motion.p>
-            <div className="flex space-x-1">{renderStars()}</div>
-          </div>
+          <motion.div variants={textVariants}>
+            <h4 className="text-lg font-bold text-synergy-dark">{clientName}</h4>
+            <p className="text-gray-600 text-sm">{companyName}</p>
+            <div className="flex mt-1">
+              {renderStars()}
+            </div>
+          </motion.div>
         </div>
         
-        <motion.div 
+        {/* Testimonial text */}
+        <motion.p 
+          className="text-gray-700 italic relative z-10"
           variants={textVariants}
-          className="mt-2 mb-4"
         >
-          <p className="text-gray-700 text-lg leading-relaxed">{description}</p>
-        </motion.div>
+          "{description}"
+        </motion.p>
       </div>
     </motion.div>
   );
@@ -163,172 +259,257 @@ const Testimonial: React.FC<TestimonialProps> = ({ clientName, companyName, desc
 
 const TestimonialsSection: React.FC = () => {
   const [testimonials, setTestimonials] = useState<TestimonialProps[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: false, amount: 0.1 });
+  const controllerRef = useRef<AbortController | null>(null);
 
   const fetchTestimonials = async () => {
+    // Create a new AbortController for this request
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+    controllerRef.current = new AbortController();
+    
     try {
-      setIsLoading(true);
-      const response = await fetch(`${apiEndpoint.testimonial}/get-all`);
-      const res = await response.json();
-      const data = res.data;
-      setTestimonials(data);
-    } catch (error) {
-      console.error('Error fetching testimonials:', error);
+      const response = await fetch(`${apiEndpoint.testimonial}/get-all`, {
+        signal: controllerRef.current.signal
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch testimonials');
+      }
+      
+      const data = await response.json();
+      setTestimonials(data.data);
+    } catch (err) {
+      // Don't set error state if the request was aborted
+      if ((err as Error).name !== 'AbortError') {
+        console.error('Error fetching testimonials:', err);
+        setError('Failed to load testimonials. Please try again later.');
+      }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
+      setIsInitialLoad(false);
     }
   };
 
   useEffect(() => {
     fetchTestimonials();
+    
+    // Cleanup function to abort any in-flight requests
+    return () => {
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+    };
   }, []);
 
+  // Animation variants for section elements
+  const headingVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.6,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
+  const lineVariants = {
+    hidden: { width: 0 },
+    visible: { 
+      width: "6rem",
+      transition: { 
+        duration: 0.8,
+        delay: 0.2,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
+  const backgroundBlobVariants = {
+    hidden: { opacity: 0, scale: 0.5 },
+    visible: { 
+      opacity: 0.3, 
+      scale: 1,
+      transition: { 
+        duration: 1.2,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  // Render skeleton loaders for initial load
+  const renderSkeletons = () => {
+    return [0, 1, 2].map((index) => (
+      <SwiperSlide key={`skeleton-${index}`} className="pb-12">
+        <TestimonialSkeleton index={index} />
+      </SwiperSlide>
+    ));
+  };
+
   return (
-    <motion.section
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8 }}
-      id="testimonials" 
-      className="py-20 bg-synergy-light/50 overflow-hidden"
+    <section 
+      ref={sectionRef}
+      className="py-20 bg-gray-50 relative overflow-hidden"
     >
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-16"
-        >
-          <motion.h2
-            initial={{ opacity: 0, y: -20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-3xl md:text-4xl font-heading font-bold text-synergy-dark mb-4"
+      {/* Background decorative elements */}
+      <motion.div 
+        className="absolute top-0 right-0 w-96 h-96 bg-synergy-red/5 rounded-full blur-3xl"
+        variants={backgroundBlobVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+      />
+      <motion.div 
+        className="absolute bottom-0 left-0 w-80 h-80 bg-synergy-red/5 rounded-full blur-3xl"
+        variants={backgroundBlobVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        transition={{ delay: 0.3 }}
+      />
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Section heading */}
+        <div className="text-center mb-16">
+          <motion.h2 
+            className="text-4xl md:text-5xl font-heading font-bold text-synergy-dark mb-4"
+            variants={headingVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
           >
             Client Testimonials
           </motion.h2>
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="w-20 h-1 bg-synergy-red mx-auto mb-6"
-          />
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-lg text-gray-600"
+          
+          <motion.div 
+            className="h-1 bg-synergy-red mx-auto mb-6"
+            variants={lineVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+          ></motion.div>
+          
+          <motion.p 
+            className="text-xl text-gray-600 max-w-3xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
           >
-            Don't just take our word for it. Here's what our clients have to say about working with Synergy OOH.
+            Hear what our clients have to say about their experience working with us.
           </motion.p>
+        </div>
+
+        {/* Loading state - only show spinner on subsequent loads, not initial load */}
+        <AnimatePresence>
+          {loading && !isInitialLoad && (
+            <motion.div 
+              className="flex justify-center items-center py-10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="w-16 h-16 border-4 border-synergy-red/30 border-t-synergy-red rounded-full animate-spin"></div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Error state */}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              className="bg-red-50 text-red-600 p-4 rounded-lg text-center mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p>{error}</p>
+              <button 
+                onClick={() => {
+                  setLoading(true);
+                  setError(null);
+                  fetchTestimonials();
+                }} 
+                className="mt-2 text-synergy-red font-medium hover:underline"
+              >
+                Try Again
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Testimonials Swiper - show skeletons during initial load */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="overflow-visible"
+        >
+          <Swiper
+            modules={[Pagination, Autoplay, EffectCoverflow]}
+            spaceBetween={30}
+            slidesPerView={1}
+            pagination={{ clickable: true }}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            effect="coverflow"
+            coverflowEffect={{
+              rotate: 0,
+              stretch: 0,
+              depth: 100,
+              modifier: 1,
+              slideShadows: false,
+            }}
+            breakpoints={{
+              640: {
+                slidesPerView: 1,
+              },
+              768: {
+                slidesPerView: 2,
+              },
+              1024: {
+                slidesPerView: 3,
+              },
+            }}
+            className="testimonial-swiper py-10"
+          >
+            {/* Show skeletons during initial load */}
+            {isInitialLoad && renderSkeletons()}
+            
+            {/* Show actual testimonials once loaded */}
+            {!isInitialLoad && !error && testimonials.length > 0 && 
+              testimonials.map((testimonial, index) => (
+                <SwiperSlide key={index} className="pb-12">
+                  <Testimonial 
+                    clientName={testimonial.clientName}
+                    companyName={testimonial.companyName}
+                    description={testimonial.description}
+                    imageUrl={testimonial.imageUrl}
+                    rating={testimonial.rating}
+                    index={index}
+                  />
+                </SwiperSlide>
+              ))
+            }
+          </Swiper>
         </motion.div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="relative"
+        {/* No testimonials state */}
+        {!loading && !error && !isInitialLoad && testimonials.length === 0 && (
+          <motion.div 
+            className="text-center py-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
           >
-            {isLoading ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-center py-10"
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      transition: {
-                        repeat: Infinity,
-                        duration: 1,
-                        ease: "easeInOut"
-                      }
-                    }}
-                    className="w-3 h-3 bg-synergy-red rounded-full"
-                  />
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      transition: {
-                        repeat: Infinity,
-                        duration: 1,
-                        delay: 0.2,
-                        ease: "easeInOut"
-                      }
-                    }}
-                    className="w-3 h-3 bg-synergy-red rounded-full"
-                  />
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      transition: {
-                        repeat: Infinity,
-                        duration: 1,
-                        delay: 0.4,
-                        ease: "easeInOut"
-                      }
-                    }}
-                    className="w-3 h-3 bg-synergy-red rounded-full"
-                  />
-                </div>
-              </motion.div>
-            ) : testimonials.length > 0 ? (
-              <Swiper
-                modules={[Pagination, Autoplay]}
-                spaceBetween={24}
-                slidesPerView={1}
-                breakpoints={{
-                  640: {
-                    slidesPerView: 1,
-                    spaceBetween: 20,
-                  },
-                  768: {
-                    slidesPerView: 2,
-                    spaceBetween: 24,
-                  },
-                  1024: {
-                    slidesPerView: 3,
-                    spaceBetween: 30,
-                  },
-                }}
-                pagination={{ clickable: true }}
-                autoplay={{ delay: 5000, disableOnInteraction: false }}
-                className="!pb-14"
-              >
-                {testimonials.map((testimonial, index) => (
-                  <SwiperSlide key={index} className="h-auto">
-                    <Testimonial
-                      clientName={testimonial.clientName}
-                      companyName={testimonial.companyName}
-                      description={testimonial.description}
-                      imageUrl={testimonial.imageUrl}
-                      rating={testimonial.rating}
-                    />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-center py-10"
-              >
-                <p className="text-gray-500">No testimonials available</p>
-              </motion.div>
-            )}
+            <p className="text-gray-600">No testimonials available at the moment.</p>
           </motion.div>
-        </AnimatePresence>
+        )}
       </div>
-    </motion.section>
+    </section>
   );
 };
 

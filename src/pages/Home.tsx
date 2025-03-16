@@ -1,6 +1,10 @@
-import React, { lazy, Suspense, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { lazy, Suspense, useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import Loader from '../components/common/Loader';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // Gradient styles
 const headingGradientStyle = {
@@ -56,14 +60,27 @@ preloadAllComponents();
 
 // Animation variants
 const sectionVariants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 50 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.2,
-      ease: 'easeOut',
-      delay: 0
+      duration: 0.8,
+      ease: [0.22, 1, 0.36, 1],
+      staggerChildren: 0.2,
+      delayChildren: 0.3
+    }
+  }
+};
+
+const fadeInUpVariant = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1]
     }
   }
 };
@@ -98,7 +115,41 @@ const SectionLoader: React.FC<{ message?: string }> = ({ message = "Loading..." 
   );
 };
 
+// Section wrapper with animations
+const AnimatedSection: React.FC<{
+  id: string;
+  children: React.ReactNode;
+  className?: string;
+}> = ({ id, children, className = "" }) => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { once: false, amount: 0.2 });
+  
+  return (
+    <section 
+      id={id} 
+      ref={sectionRef}
+      className={`relative overflow-hidden ${className}`}
+    >
+      <motion.div
+        variants={sectionVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        className="w-full h-full"
+      >
+        {children}
+      </motion.div>
+      
+      {/* Section divider */}
+      <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white/5 to-transparent pointer-events-none" />
+    </section>
+  );
+};
+
 const Home: React.FC = () => {
+  const mainRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: mainRef });
+  const progressBarWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  
   // Use Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -116,11 +167,32 @@ const Home: React.FC = () => {
       observer.observe(section);
     });
 
+    // GSAP animations
+    const sections = gsap.utils.toArray('section[id]');
+    sections.forEach((section: any) => {
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top 80%",
+        onEnter: () => {
+          section.classList.add('active-section');
+        },
+        onLeaveBack: () => {
+          section.classList.remove('active-section');
+        }
+      });
+    });
+
     return () => observer.disconnect();
   }, []);
 
   return (
-    <>
+    <div ref={mainRef} className="relative">
+      {/* Progress bar */}
+      <motion.div 
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-synergy-red to-red-600 z-50 origin-left"
+        style={{ scaleX: progressBarWidth }}
+      />
+      
       <section id="hero">
         <Suspense fallback={<SectionLoader message="Loading hero..." />}>
           <motion.div
@@ -134,73 +206,56 @@ const Home: React.FC = () => {
         </Suspense>
       </section>
 
-      <section id="services">
+      <AnimatedSection id="services">
         <Suspense fallback={<SectionLoader message="Loading services..." />}>
-          <motion.div
-            key="services-section"
-            variants={sectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.01, margin: "200px 0px" }}
-          >
-            <ServicesSection />
-          </motion.div>
+          <ServicesSection />
         </Suspense>
-      </section>
+      </AnimatedSection>
 
-      <section id="blogs">
+      <AnimatedSection id="blogs">
         <Suspense fallback={<SectionLoader message="Loading blogs..." />}>
-          <motion.div
-            key="blogs-section"
-            variants={sectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-          >
-            <BlogsSection />
-          </motion.div>
+          <BlogsSection />
         </Suspense>
-      </section>
+      </AnimatedSection>
 
-      <section id="clients">
+      <AnimatedSection id="clients">
         <Suspense fallback={<SectionLoader />}>
-          <motion.div
-            variants={sectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-          >
-            <ClientsSection />
-          </motion.div>
+          <ClientsSection />
         </Suspense>
-      </section>
+      </AnimatedSection>
 
-      <section id="testimonials">
+      <AnimatedSection id="testimonials">
         <Suspense fallback={<SectionLoader />}>
-          <motion.div
-            variants={sectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-          >
-            <TestimonialsSection />
-          </motion.div>
+          <TestimonialsSection />
         </Suspense>
-      </section>
+      </AnimatedSection>
 
-      <section id="instagram">
+      <AnimatedSection id="instagram">
         <Suspense fallback={<SectionLoader />}>
-          <motion.div
-            variants={sectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-          >
-            <InstagramFeedSection />
-          </motion.div>
+          <InstagramFeedSection />
         </Suspense>
-      </section>
-    </>
+      </AnimatedSection>
+      
+      {/* Back to top button */}
+      <AnimatePresence>
+        {scrollYProgress.get() > 0.2 && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-8 right-8 z-50 bg-synergy-red text-white p-3 rounded-full shadow-lg"
+            aria-label="Back to top"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

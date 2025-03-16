@@ -61,16 +61,22 @@ const BlogManager: React.FC = () => {
 
   const deleteImageFromCloudinary = async (imageUrl: string) => {
     try {
-      if (!imageUrl.includes("cloudinary.com")) {
-        console.warn("Not a Cloudinary URL:", imageUrl);
+      if (!imageUrl || !imageUrl.includes("cloudinary.com")) {
+        console.warn("Not a valid Cloudinary URL:", imageUrl);
         return;
       }
 
-      const matches = imageUrl.match(/\/v\d+\/(.+?)\./);
-      if (!matches || !matches[1]) {
+      // Extract the public ID from the Cloudinary URL
+      // Format: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/public-id.jpg
+      const urlParts = imageUrl.split('/');
+      const publicIdWithExtension = urlParts[urlParts.length - 1];
+      const publicId = publicIdWithExtension.split('.')[0];
+      
+      if (!publicId) {
         throw new Error("Could not extract public_id from Cloudinary URL");
       }
-      const publicId = matches[1];
+      
+      console.log(`Attempting to delete Cloudinary image: ${publicId}`);
 
       const response = await fetch(`${apiEndpoint.deleteImage}/${publicId}`, {
         method: "DELETE",
@@ -83,13 +89,17 @@ const BlogManager: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        console.error("Cloudinary deletion error:", data);
         throw new Error(
           data.error || data.message || "Failed to delete image from Cloudinary"
         );
       }
+      
+      console.log("Successfully deleted image from Cloudinary");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
+      console.error("Error deleting image from Cloudinary:", errorMessage);
       toast.error(`Failed to delete image from Cloudinary: ${errorMessage}`);
     }
   };
@@ -365,12 +375,14 @@ const BlogManager: React.FC = () => {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
+                  "Authorization": `Bearer ${user.token}`
                 },
                 body: JSON.stringify(data),
               });
 
               if (!response.ok) {
-                throw new Error("Failed to create blog");
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to create blog");
               }
               setActiveTab("list");
               await fetchBlogs();
