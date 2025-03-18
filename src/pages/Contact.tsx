@@ -182,7 +182,7 @@ const Contact: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${apiEndpoint.contact}/create`, {
+      const response = await fetch(`${apiEndpoint.contact}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

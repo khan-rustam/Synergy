@@ -8,7 +8,7 @@ import { apiEndpoint } from "../config/api";
 import DeleteModal from "../../common/DeleteModal";
 
 interface Testimonial {
-  _id: string;
+  id: number;
   clientName: string;
   companyName: string;
   rating: number;
@@ -105,8 +105,16 @@ const TestimonialsManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      // First, delete the testimonial from the database
-      const response = await fetch(`${apiEndpoint.testimonial}/delete/${selectedTestimonial._id}`, {
+      // First, try to delete from Cloudinary
+      try {
+        await deleteImageFromCloudinary(selectedTestimonial.imageUrl);
+      } catch (cloudinaryError) {
+        console.warn("Cloudinary deletion warning:", cloudinaryError);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
+
+      // Then delete from database
+      const response = await fetch(`${apiEndpoint.testimonial}/delete/${selectedTestimonial.id}`, {
         method: "DELETE",
         headers: {
           'Authorization': `Bearer ${user.token}`,
@@ -115,14 +123,10 @@ const TestimonialsManager: React.FC = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete testimonial");
+        throw new Error("Failed to delete testimonial from database");
       }
 
-      // If testimonial deletion was successful, delete the image from Cloudinary
-      await deleteImageFromCloudinary(selectedTestimonial.imageUrl);
-
-      setTestimonials((prev) => prev.filter((t) => t._id !== selectedTestimonial._id));
+      setTestimonials((prev) => prev.filter((t) => t.id !== selectedTestimonial.id));
       toast.success("Testimonial deleted successfully!");
       setShowDeleteModal(false);
       setSelectedTestimonial(null);
@@ -132,7 +136,7 @@ const TestimonialsManager: React.FC = () => {
       toast.error(
         <div className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
-          <span>{errorMessage}</span>
+          <span>Failed to delete testimonial. Please try again.</span>
         </div>
       );
     } finally {
@@ -333,7 +337,7 @@ const TestimonialsManager: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {testimonials.map((testimonial) => (
-                <tr key={testimonial._id}>
+                <tr key={testimonial.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <img

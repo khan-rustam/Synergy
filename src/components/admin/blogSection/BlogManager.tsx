@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import DeleteModal from "../../common/DeleteModal";
 
 interface Blog {
-  _id: string;
+  id: number;
   title: string;
   content: string;
   imageUrl: string;
@@ -112,8 +112,17 @@ const BlogManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
+      // First, try to delete from Cloudinary
+      try {
+        await deleteImageFromCloudinary(blogToDelete.imageUrl);
+      } catch (cloudinaryError) {
+        console.warn("Cloudinary deletion warning:", cloudinaryError);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
+
+      // Then delete from database
       const response = await fetch(
-        `${apiEndpoint.blog}/delete/${blogToDelete._id}`,
+        `${apiEndpoint.blog}/delete/${blogToDelete.id}`,
         {
           method: "DELETE",
           headers: {
@@ -124,13 +133,10 @@ const BlogManager: React.FC = () => {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete blog");
+        throw new Error("Failed to delete blog from database");
       }
 
-      await deleteImageFromCloudinary(blogToDelete.imageUrl);
-
-      setBlogs((prev) => prev.filter((b) => b._id !== blogToDelete._id));
+      setBlogs((prev) => prev.filter((b) => b.id !== blogToDelete.id));
       toast.success("Blog deleted successfully!");
       setShowDeleteModal(false);
       setBlogToDelete(null);
@@ -141,7 +147,7 @@ const BlogManager: React.FC = () => {
       toast.error(
         <div className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
-          <span>{errorMessage}</span>
+          <span>Failed to delete blog. Please try again.</span>
         </div>
       );
     } finally {
@@ -304,7 +310,7 @@ const BlogManager: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogs.map((blog) => (
               <div
-                key={blog._id}
+                key={blog.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden"
               >
                 <div className="cursor-pointer group">

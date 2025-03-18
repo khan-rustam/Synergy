@@ -8,8 +8,9 @@ import ClientLogoForm from "./ClientLogoForm";
 import { apiEndpoint } from "../config/api";
 
 interface ClientLogo {
-  _id: string;
+  id: number;
   imageUrl: string;
+  createdAt: string;
 }
 
 const ClientLogoManager: React.FC = () => {
@@ -108,7 +109,17 @@ const ClientLogoManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`${apiEndpoint.clientLogo}/delete/${logo._id}`, {
+      // First, try to delete from Cloudinary
+      try {
+        await deleteImageFromCloudinary(logo.imageUrl);
+      } catch (cloudinaryError) {
+        console.warn("Cloudinary deletion warning:", cloudinaryError);
+        // Continue with database deletion even if Cloudinary deletion fails
+        // This ensures the database stays in sync even if image deletion fails
+      }
+
+      // Then delete from database
+      const response = await fetch(`${apiEndpoint.clientLogo}/delete/${logo.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${user.token}`,
@@ -117,17 +128,21 @@ const ClientLogoManager: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete client logo");
+        throw new Error("Failed to delete client logo from database");
       }
 
-      await deleteImageFromCloudinary(logo.imageUrl);
       await fetchLogos();
       toast.success("Client logo deleted successfully");
       setShowDeleteModal(false);
       setLogoToDelete(null);
     } catch (error) {
       console.error("Error deleting client logo:", error);
-      toast.error("Failed to delete client logo");
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>Failed to delete client logo. Please try again.</span>
+        </div>
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -291,7 +306,7 @@ const ClientLogoManager: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {logos.map((logo) => (
             <div
-              key={logo._id}
+              key={logo.id}
               className="border rounded-lg overflow-hidden p-4 bg-white hover:shadow-lg transition-shadow duration-200"
             >
               <div className="flex justify-end mb-2">

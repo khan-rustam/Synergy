@@ -1,16 +1,16 @@
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
-import SliderForm from "./SliderForm";
-import { apiEndpoint } from "../config/api";
 import { toast } from "react-toastify";
-import DeleteModal from "../../common/DeleteModal";
+import { apiEndpoint } from "../config/api";
 import { useSelector } from "react-redux";
+import SliderForm from "./SliderForm";
+import DeleteModal from "../../common/DeleteModal";
 
 interface Slide {
-  _id: string;
+  id: number;
   imageUrl: string;
-  id: string;
+  createdAt: string;
 }
 
 const SliderManager: React.FC = () => {
@@ -19,7 +19,6 @@ const SliderManager: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [slideToDelete, setSlideToDelete] = useState<Slide | null>(null);
@@ -33,11 +32,11 @@ const SliderManager: React.FC = () => {
         throw new Error("Failed to fetch slides");
       }
       const data = await response.json();
-      setSlides(data.data);
+      setSlides(data.data || []);
       setError("");
     } catch (err) {
-      setError("Failed to fetch slides");
       console.error("Error fetching slides:", err);
+      setError("Failed to fetch slides");
     } finally {
       setIsLoading(false);
       setIsRetrying(false);
@@ -135,7 +134,7 @@ const SliderManager: React.FC = () => {
     }
   };
 
-  const handleDelete = async (slide: { imageUrl: string; _id: string }) => {
+  const handleDelete = async (slide: Slide) => {
     if (!user?.token || !slideToDelete) {
       toast.error("Authentication required. Please log in again.");
       return;
@@ -143,21 +142,26 @@ const SliderManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      // Delete slide from database first
-      const response = await fetch(`${apiEndpoint.slide}/delete/${slide._id}`, {
+      // First, try to delete from Cloudinary
+      try {
+        await deleteImageFromCloudinary(slide.imageUrl);
+      } catch (cloudinaryError) {
+        console.warn("Cloudinary deletion warning:", cloudinaryError);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
+
+      // Then delete from database
+      const response = await fetch(`${apiEndpoint.slide}/delete/${slide.id}`, {
         method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
+          "Authorization": `Bearer ${user.token}`,
+          "Content-Type": "application/json"
+        }
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete slide");
+        throw new Error("Failed to delete slide from database");
       }
-
-      // If event deletion was successful, delete the image from Cloudinary
-      await deleteImageFromCloudinary(slide.imageUrl!);
 
       await fetchSlides();
       toast.success("Slide deleted successfully");
@@ -165,7 +169,12 @@ const SliderManager: React.FC = () => {
       setSlideToDelete(null);
     } catch (error) {
       console.error("Error deleting slide:", error);
-      toast.error("Failed to delete slide");
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>Failed to delete slide. Please try again.</span>
+        </div>
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -184,13 +193,7 @@ const SliderManager: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="border rounded-lg overflow-hidden">
-              <div className="h-48 bg-gray-100 animate-pulse"></div>
-              <div className="p-4">
-                <div className="flex justify-between items-center">
-                  <div className="w-24 h-6 bg-gray-100 animate-pulse rounded"></div>
-                  <div className="w-16 h-6 bg-gray-100 animate-pulse rounded"></div>
-                </div>
-              </div>
+              <div className="w-full h-48 bg-gray-100 animate-pulse"></div>
             </div>
           ))}
         </div>
@@ -243,10 +246,11 @@ const SliderManager: React.FC = () => {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={() => handleDelete(slideToDelete!)}
         isDeleting={isDeleting}
-        itemName={slideToDelete?.id || ""}
+        itemName={slideToDelete?.id.toString() || ""}
         itemType="Slide"
         title="Delete Slide"
       />
+
       <div className="flex justify-between items-center mb-6 border-b">
         <div className="flex items-center gap-4">
           <div className="bg-synergy-red/10 text-synergy-red px-3 py-1 rounded-full text-sm font-medium">
@@ -263,11 +267,12 @@ const SliderManager: React.FC = () => {
           Add New Slide
         </motion.button>
       </div>
+
       {slides.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center py-12 px-4">
+          <div className="bg-gray-100 rounded-full p-8 mb-6">
             <svg
-              className="w-12 h-12 text-gray-400"
+              className="w-16 h-16 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -275,20 +280,22 @@ const SliderManager: React.FC = () => {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
             No Slides Found
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-500 text-center mb-6">
             There are no slides to display at the moment.
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-synergy-red hover:bg-synergy-red/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-synergy-red"
+            className="px-6 py-3 bg-synergy-red text-white rounded-lg font-medium 
+                     hover:bg-synergy-red/90 transition-colors duration-200 
+                     flex items-center gap-2"
           >
             Add Your First Slide
           </button>
@@ -296,7 +303,7 @@ const SliderManager: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {slides.map((slide) => (
-            <div key={slide._id} className="border rounded-lg overflow-hidden">
+            <div key={slide.id} className="border rounded-lg overflow-hidden">
               <img
                 src={slide.imageUrl}
                 alt={`Slide ${slide.id}`}

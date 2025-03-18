@@ -9,7 +9,7 @@ import DeleteModal from '../../common/DeleteModal';
 import { apiEndpoint } from '../config/api';
 
 interface Contact {
-  _id: string;
+  id: number;
   name: string;
   email: string;
   phone: string;
@@ -76,7 +76,7 @@ const ContactList: React.FC = () => {
     }
   };
 
-  const handleMarkAsRead = async (id: string) => {
+  const handleMarkAsRead = async (id: number) => {
     try {
       if (!user?.token) {
         setError('Authentication required. Please log in.');
@@ -102,7 +102,7 @@ const ContactList: React.FC = () => {
 
       if (data.success) {
         setContacts(contacts.map(contact =>
-          contact._id === id ? { ...contact, isRead: true } : contact
+          contact.id === id ? { ...contact, isRead: true } : contact
         ));
         toast.success('Marked as read');
       } else {
@@ -128,7 +128,7 @@ const ContactList: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`${apiEndpoint.contact}/${selectedContact._id}`, {
+      const response = await fetch(`${apiEndpoint.contact}/${selectedContact.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${user.token}`,
@@ -145,7 +145,7 @@ const ContactList: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        setContacts(contacts.filter(contact => contact._id !== selectedContact._id));
+        setContacts(contacts.filter(contact => contact.id !== selectedContact.id));
         toast.success('Contact entry deleted successfully');
         setShowDeleteModal(false);
         setSelectedContact(null);
@@ -283,7 +283,7 @@ const ContactList: React.FC = () => {
         <div className="grid gap-6">
           {contacts.map((contact) => (
             <div
-              key={contact._id}
+              key={contact.id}
               className={`bg-white rounded-lg shadow-md p-6 ${!contact.isRead ? 'border-l-4 border-synergy-red' : 'border border-gray-200'
                 }`}
             >
@@ -319,7 +319,7 @@ const ContactList: React.FC = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => handleMarkAsRead(contact._id)}
+                    onClick={() => handleMarkAsRead(contact.id)}
                     className="flex items-center px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
                   >
                     <Check className="h-4 w-4 mr-2" />

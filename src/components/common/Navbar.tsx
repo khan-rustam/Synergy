@@ -172,11 +172,23 @@ const Navbar: React.FC = () => {
                   ) : (
                     <Link
                       to="/contact"
-                      className="bg-synergy-red hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full 
-                        transition-all duration-300 hover:shadow-lg hover:shadow-synergy-red/20"
+                      className="relative inline-flex items-center group overflow-hidden bg-gradient-to-r from-synergy-red to-red-600 text-white font-bold py-2 px-6 rounded-full"
                       onClick={scrollToTop}
                     >
-                      Get Started
+                      <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+                        Get Started
+                      </span>
+                      <motion.span 
+                        className="absolute inset-0 bg-gradient-to-r from-red-600 to-synergy-red opacity-0 group-hover:opacity-100 transition-all duration-300"
+                        initial={false}
+                        whileHover={{ scale: 1.1 }}
+                      />
+                      <motion.div
+                        className="absolute right-2 w-5 h-5 rounded-full bg-white/10"
+                        initial={{ x: -10, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      />
                     </Link>
                   )}
                 </motion.div>
@@ -188,15 +200,38 @@ const Navbar: React.FC = () => {
                 </button>
               </>
             ) : (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   to="/contact"
-                  className="relative group overflow-hidden bg-gradient-to-r from-synergy-red to-red-600 hover:from-red-600 hover:to-synergy-red text-white font-bold py-2 px-6 rounded-full 
-                    transition-all duration-300 hover:shadow-lg hover:shadow-synergy-red/20"
+                  className="relative inline-flex items-center group overflow-hidden bg-gradient-to-r from-synergy-red to-red-600 text-white font-bold py-2.5 px-7 rounded-full"
                   onClick={scrollToTop}
                 >
-                  <span className="relative z-10">Get Started</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-synergy-red to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+                    Get Started
+                  </span>
+                  <svg 
+                    className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1 relative z-10" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                  <motion.span 
+                    className="absolute inset-0 bg-gradient-to-r from-red-600 to-synergy-red opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    initial={false}
+                    whileHover={{ 
+                      scale: 1.05,
+                      boxShadow: "0 10px 30px -10px rgba(239, 68, 68, 0.5)"
+                    }}
+                  />
+                  <motion.div
+                    className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background: "radial-gradient(circle at center, rgba(239, 68, 68, 0.2) 0%, transparent 70%)",
+                      filter: "blur(8px)"
+                    }}
+                  />
                 </Link>
               </motion.div>
             )}

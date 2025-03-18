@@ -13,10 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import { useLocation } from 'react-router-dom';
 import Loader from './components/common/Loader';
-
-// Layout components
-import Navbar from './components/common/Navbar';
-import Footer from './components/common/Footer';
+import MainLayout from './components/layout/MainLayout';
 
 // Lazy load pages with prefetching
 const Home = lazy(() => import(/* webpackPrefetch: true */ './pages/Home'));
@@ -127,29 +124,51 @@ const App: React.FC = () => {
   return (
     <>
       <ScrollToTop />
-      <div className="font-body">
-        <Navbar />
-        <ToastContainer limit={3} />
-        <Suspense fallback={<Loader fullScreen={true} showText={true} />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/admin-dashboard" element={
-              <ProtectedRoute>
+      <ToastContainer limit={3} />
+      <Suspense fallback={<Loader fullScreen={true} showText={true} />}>
+        <Routes>
+          <Route path="/" element={
+            <MainLayout>
+              <Home />
+            </MainLayout>
+          } />
+          <Route path="/about" element={
+            <MainLayout>
+              <About />
+            </MainLayout>
+          } />
+          <Route path="/services" element={
+            <MainLayout>
+              <Services />
+            </MainLayout>
+          } />
+          <Route path="/blog" element={
+            <MainLayout>
+              <Blog />
+            </MainLayout>
+          } />
+          <Route path="/blog/:id" element={
+            <MainLayout>
+              <BlogDetail />
+            </MainLayout>
+          } />
+          <Route path="/contact" element={
+            <MainLayout>
+              <Contact />
+            </MainLayout>
+          } />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/admin-dashboard" element={
+            <ProtectedRoute>
+              <MainLayout showFooter={false}>
                 <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-        {location.pathname !== '/admin-dashboard' && <Footer />}
-      </div>
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </>
   );
 };

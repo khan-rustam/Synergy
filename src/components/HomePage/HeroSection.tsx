@@ -9,6 +9,12 @@ import { motion, useScroll, useTransform, useMotionValue, useSpring, AnimatePres
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Fallback images for when database has no images
+const fallbackImages = [
+  'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1674&q=80',
+  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80'
+];
+
 // Add gradient styles
 const titleGradientStyle = {
   background: 'linear-gradient(135deg, #ffffff 0%, #e6e9f0 100%)',
@@ -157,8 +163,14 @@ const Particle = ({ index }: { index: number }) => {
   );
 };
 
+// Define a proper type for the getCarouselImages return value
+interface CarouselImagesResult {
+  slides: string[];
+  controller: AbortController | null;
+}
+
 const HeroSection: React.FC = () => {
-  const [slides, setSlides] = useState<string[]>([]);
+  const [slides, setSlides] = useState<string[]>(fallbackImages); // Initialize with fallbacks
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -187,7 +199,7 @@ const HeroSection: React.FC = () => {
     mouseY.set(y);
   };
   
-  const getCarouselImages = async () => {
+  const getCarouselImages = async (): Promise<CarouselImagesResult> => {
     try {
       const controller = new AbortController();
       const signal = controller.signal;
@@ -195,14 +207,30 @@ const HeroSection: React.FC = () => {
       const response = await fetch(`${apiEndpoint.slide}/get-all`, { signal });
       const data = await response.json();
       const slides = data.data.map((slide: any) => slide.imageUrl);
-      setSlides(slides);
       
-      return controller; // Return controller for cleanup
+      // If no slides are returned from database, use fallback images
+      if (!slides || slides.length === 0) {
+        console.log("No slides found, using fallback images");
+        return { 
+          slides: fallbackImages,
+          controller 
+        };
+      }
+      
+      return { 
+        slides, 
+        controller 
+      };
     } catch (error) {
       if ((error as Error).name !== 'AbortError') {
         console.log("Error fetching carousel images:", error);
+        console.log("Using fallback images");
       }
-      return null;
+      // Return fallback images on error
+      return { 
+        slides: fallbackImages,
+        controller: null 
+      };
     }
   };
 
@@ -211,7 +239,9 @@ const HeroSection: React.FC = () => {
     let controller: AbortController | null = null;
     
     const initAnimations = async () => {
-      controller = await getCarouselImages() as AbortController | null;
+      const result = await getCarouselImages();
+      setSlides(result.slides);
+      controller = result.controller;
       
       const text = document.querySelector('.hero-text');
       
