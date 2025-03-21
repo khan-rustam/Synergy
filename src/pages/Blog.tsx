@@ -6,10 +6,11 @@ import { motion } from 'framer-motion';
 import PageTransition from '../components/common/PageTransition';
 import ScrollReveal from '../components/common/ScrollReveal';
 import LazyImage from '../components/common/LazyImage';
-import { BookOpen, Newspaper } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 // Define blog interface
 interface Blog {
+  [x: string]: string | string[] | undefined;
   _id: string;
   title: string;
   content: string;
@@ -161,7 +162,7 @@ const BlogPost: React.FC<BlogPostProps> = ({ blog }) => {
       className="bg-white rounded-xl shadow-lg overflow-hidden h-full"
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
-      <Link to={`/blog/${blog._id}`} className="block h-full">
+      <Link to={`/blog/${blog._id || blog.id}`} className="block h-full">
         <div className="h-48 overflow-hidden">
           <LazyImage
             src={blog.imageUrl || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}
@@ -184,7 +185,7 @@ const BlogPost: React.FC<BlogPostProps> = ({ blog }) => {
             {stripHtmlAndTruncate(blog.content)}
           </p>
           <div className="flex items-center justify-between mt-auto">
-            <span className="text-sm font-medium text-gray-700">By {blog.author || 'Synergy Team'}</span>
+            <span className="text-sm font-medium text-gray-700">By {'Synergy'}</span>
             <span className="text-synergy-red font-medium text-sm">Read more →</span>
           </div>
         </div>
@@ -251,8 +252,12 @@ const Blog: React.FC = () => {
     
     // Return the cleanup function
     return () => {
-      if (typeof cleanup === 'function') {
-        cleanup();
+      if (cleanup && typeof cleanup.then === 'function') {
+        cleanup.then((cleanupFn: () => void) => {
+          if (typeof cleanupFn === 'function') {
+            cleanupFn();
+          }
+        });
       }
     };
   }, [getBlogs]);
@@ -397,7 +402,7 @@ const Blog: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {blogs.map((blog, index) => (
-                <ScrollReveal key={blog._id} variant="fadeUp" delay={index * 0.1} className="h-full">
+                <ScrollReveal key={blog._id || `blog-${index}`} variant="fadeUp" delay={index * 0.1} className="h-full">
                   <BlogPost blog={blog} />
                 </ScrollReveal>
               ))}

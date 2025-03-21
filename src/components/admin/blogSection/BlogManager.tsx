@@ -38,7 +38,7 @@ const BlogManager: React.FC = () => {
     }
     setError(null);
     try {
-      const response = await fetch(`${apiEndpoint.blog}/get-all`);
+      const response = await fetch(`${apiEndpoint.blog}/s`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }

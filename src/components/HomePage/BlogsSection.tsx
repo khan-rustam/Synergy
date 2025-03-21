@@ -6,6 +6,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 
 // Define blog interface for better type safety
 interface Blog {
+  id: string;
   _id: string;
   title: string;
   content: string;
@@ -84,7 +85,7 @@ const BlogCard: React.FC<{
   return (
     <motion.div
       ref={cardRef}
-      className="bg-white rounded-xl shadow-lg overflow-hidden card-3d"
+      className="bg-white rounded-xl shadow-lg overflow-hidden card-3d cursor-pointer"
       variants={cardVariants}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
@@ -92,7 +93,7 @@ const BlogCard: React.FC<{
         y: -10, 
         boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
       }}
-      onClick={() => onClick(blog._id)}
+      onClick={() => onClick(blog._id || blog.id)}
     >
       {/* Image container with overflow hidden for zoom effect */}
       <div className="relative h-48 overflow-hidden">

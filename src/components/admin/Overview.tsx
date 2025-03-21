@@ -153,11 +153,7 @@ const Overview: React.FC = () => {
     const fetchTotalSlides = useCallback(async () => {
         try {
             updateStat('slider', { isLoading: true });
-            const response = await fetch(`${apiEndpoint.slide}/get-all`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(`${apiEndpoint.slide}/get-all`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch slider count');
@@ -179,7 +175,7 @@ const Overview: React.FC = () => {
                 }
             });
         }
-    }, [updateStat, token]);
+    }, [updateStat]);
 
     /**
      * Fetch total contact forms with error handling
@@ -187,11 +183,7 @@ const Overview: React.FC = () => {
     const fetchTotalContactForms = useCallback(async () => {
         try {
             updateStat('contacts', { isLoading: true });
-            const response = await fetch(`${apiEndpoint.contact}/get-all`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(`${apiEndpoint.contact}`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch contact forms count');
@@ -214,7 +206,7 @@ const Overview: React.FC = () => {
                 }
             });
         }
-    }, [updateStat, token]);
+    }, [updateStat]);
 
     /**
      * Fetch total clients with error handling
@@ -222,11 +214,7 @@ const Overview: React.FC = () => {
     const fetchTotalClients = useCallback(async () => {
         try {
             updateStat('clients', { isLoading: true });
-            const response = await fetch(`${apiEndpoint.clientLogo}/get-all`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(`${apiEndpoint.clientLogo}/get-all`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch client logos count');
@@ -249,7 +237,7 @@ const Overview: React.FC = () => {
                 }
             });
         }
-    }, [updateStat, token]);
+    }, [updateStat]);
 
     /**
      * Fetch total blogs with error handling
@@ -257,11 +245,7 @@ const Overview: React.FC = () => {
     const fetchTotalBlogs = useCallback(async () => {
         try {
             updateStat('blogs', { isLoading: true });
-            const response = await fetch(`${apiEndpoint.blog}/get-all`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(`${apiEndpoint.blog}/get-all`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch blogs count');
@@ -283,7 +267,7 @@ const Overview: React.FC = () => {
                 }
             });
         }
-    }, [updateStat, token]);
+    }, [updateStat]);
 
     /**
      * Fetch total testimonials with error handling
@@ -291,11 +275,7 @@ const Overview: React.FC = () => {
     const fetchTotalTestimonials = useCallback(async () => {
         try {
             updateStat('testimonials', { isLoading: true });
-            const response = await fetch(`${apiEndpoint.testimonial}/get-all`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(`${apiEndpoint.testimonial}/get-all`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch testimonials count');
@@ -317,7 +297,7 @@ const Overview: React.FC = () => {
                 }
             });
         }
-    }, [updateStat, token]);
+    }, [updateStat]);
 
     /**
      * Handles manual refresh of all data with debouncing

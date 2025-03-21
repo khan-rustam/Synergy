@@ -1,0 +1,24 @@
+RewriteEngine On
+RewriteBase /
+
+# Direct specific file types to real files
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route all other requests to index.html for SPA
+RewriteRule ^ index.html [L]
+
+# Enable CORS for the specific subdomain
+<IfModule mod_headers.c>
+    # Enable CORS for server.synergyooh.com
+    SetEnvIf Origin "^https://(server\.|api\.)?synergyooh\.com$" CORS_ALLOW_ORIGIN=$0
+    Header always set Access-Control-Allow-Origin %{CORS_ALLOW_ORIGIN}e env=CORS_ALLOW_ORIGIN
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    Header always set Access-Control-Allow-Credentials "true" env=CORS_ALLOW_ORIGIN
+    
+    # Handle OPTIONS method
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+</IfModule> 

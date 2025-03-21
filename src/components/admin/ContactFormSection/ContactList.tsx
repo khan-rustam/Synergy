@@ -44,7 +44,7 @@ const ContactList: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`${apiEndpoint.contact}/get-all  `, {
+      const response = await fetch(`${apiEndpoint.contact}`, {
         headers: {
           'Authorization': `Bearer ${user.token}`,
           'Content-Type': 'application/json',

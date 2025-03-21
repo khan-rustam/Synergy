@@ -1,28 +1,28 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Megaphone, Linkedin, ArrowUp } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Linkedin, ArrowUp } from "lucide-react";
+import { FaFacebook, FaInstagram, FaTwitter } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const logoGradientStyle = {
-  background: 'linear-gradient(135deg, #ff3366 0%, #ff0844 100%)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text'
+  background: "linear-gradient(135deg, #ff3366 0%, #ff0844 100%)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
 };
 
 const headingGradientStyle = {
-  background: 'linear-gradient(135deg, #ffffff 0%, #e6e9f0 100%)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text'
+  background: "linear-gradient(135deg, #ffffff 0%, #e6e9f0 100%)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
 };
 
 const Footer: React.FC = () => {
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   };
 
@@ -34,26 +34,52 @@ const Footer: React.FC = () => {
             <div className="flex items-center mb-6 group">
               <div className="relative">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-synergy-red/20 to-synergy-red/10 blur-lg" />
-                <Megaphone className="h-8 w-8 text-synergy-red bg-gradient-to-r from-synergy-red to-red-600 bg-clip-text mr-2 relative z-10 transform transition-transform duration-300 group-hover:scale-110" />
+                <img 
+                  src="/src/assets/logo-white.png" 
+                  alt="Synergy Logo" 
+                  className="h-10 w-auto mr-2 relative z-10 transform transition-transform duration-300 group-hover:scale-110" 
+                />
               </div>
-              <span className="font-heading font-bold text-xl" style={logoGradientStyle}>
-                <a href="https://www.synergyooh.com/" target='_blank' className="hover:opacity-80 transition-opacity">Synergy</a>
-              </span>
             </div>
             <p className="text-synergy-light/80 mb-6">
-              Your Brand Catalyst. We transform ordinary campaigns into extraordinary experiences that captivate audiences and elevate your brand.
+              Your Brand Catalyst. We transform ordinary campaigns into
+              extraordinary experiences that captivate audiences and elevate
+              your brand.
             </p>
             <div className="flex space-x-4">
               {[
-                { icon: FaInstagram, href: "https://www.instagram.com/synergy_ooh/" },
-                { icon: Linkedin, href: "https://in.linkedin.com/company/synergyjaipur" },
-                { icon: FaFacebook, href: "#" },
-                { icon: FaTwitter, href: "#" }
+                {
+                  icon: FaInstagram,
+                  href: "https://www.instagram.com/synergy_ooh?igsh=eDJvc3czeDhrdGpw",
+                },
+                {
+                  icon: Linkedin,
+                  href: "https://www.linkedin.com/company/synergyjaipur/",
+                },
+                {
+                  icon: FaFacebook,
+                  href: "https://www.facebook.com/share/1XZHSWQDDX/",
+                },
+                { icon: FaTwitter, href: "https://x.com/synergy_ooh?s=09" },
+                {
+                  icon: () => (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+                    </svg>
+                  ),
+                  href: "https://youtube.com/@synergyooh?si=_PVrssgikCRE9yNd",
+                },
               ].map((social, index) => (
                 <motion.a
                   key={index}
                   href={social.href}
-                  target='_blank'
+                  target="_blank"
                   className="relative group"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -68,14 +94,19 @@ const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-heading font-bold text-xl mb-6" style={headingGradientStyle}>Quick Links</h3>
+            <h3
+              className="font-heading font-bold text-xl mb-6"
+              style={headingGradientStyle}
+            >
+              Quick Links
+            </h3>
             <ul className="space-y-3">
               {[
                 { text: "Home", path: "/" },
                 { text: "About Us", path: "/about" },
                 { text: "Services", path: "/services" },
                 { text: "Blog", path: "/blog" },
-                { text: "Contact", path: "/contact" }
+                { text: "Contact", path: "/contact" },
               ].map((link, index) => (
                 <li key={index}>
                   <Link
@@ -90,14 +121,19 @@ const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-heading font-bold text-xl mb-6" style={headingGradientStyle}>Services</h3>
+            <h3
+              className="font-heading font-bold text-xl mb-6"
+              style={headingGradientStyle}
+            >
+              Services
+            </h3>
             <ul className="space-y-3">
               {[
                 "Billboard Advertising",
                 "Event Management",
                 "Branding",
                 "Promotions",
-                "Digital Integration"
+                "Digital Integration",
               ].map((service, index) => (
                 <li key={index}>
                   <Link
@@ -120,7 +156,7 @@ const Footer: React.FC = () => {
             {[
               { text: "Privacy Policy", path: "/privacy" },
               { text: "Terms of Service", path: "/terms" },
-              { text: "Sitemap", path: "/sitemap" }
+              { text: "Sitemap", path: "/sitemap" },
             ].map((link, index) => (
               <Link
                 key={index}

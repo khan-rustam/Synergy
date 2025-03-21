@@ -1,8 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, {  useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
 import { Megaphone, Calendar, Palette, BarChart3 } from 'lucide-react';
-import { scaleReveal, rotateIn3D, clipPathReveal } from '../utils/gsapAnimations';
 import { motion } from 'framer-motion';
 
 interface ServiceCardProps {
@@ -37,6 +36,15 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
         delay: delay * 0.2,
         ease: [0.22, 1, 0.36, 1]
       }
+    },
+    hover: {
+      y: -15,
+      boxShadow: "0 20px 30px -10px rgba(0, 0, 0, 0.15)",
+      background: "linear-gradient(to bottom right, #ffffff, #fff5f5)",
+      transition: { 
+        duration: 0.3,
+        ease: "easeOut"
+      }
     }
   };
 
@@ -53,8 +61,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
       }
     },
     hover: { 
-      scale: 1.1, 
-      rotate: 5,
+      scale: 1.2, 
+      rotate: 0,
+      y: -5,
+      background: "linear-gradient(135deg, #ffe5e5, #ffbcbc)",
       transition: { 
         type: "spring", 
         stiffness: 400, 
@@ -72,33 +82,54 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
         duration: 0.5, 
         delay: delay * 0.2 + 0.5 
       }
+    },
+    hover: {
+      background: "#ffe5e5",
+      x: 3,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
+  const arrowAnimation = {
+    x: 8, 
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 10,
+      repeat: Infinity,
+      repeatType: "reverse" as const,
+      repeatDelay: 0.2
     }
   };
 
   return (
     <motion.div 
       ref={ref}
-      className="card-3d bg-white rounded-xl shadow-lg overflow-hidden"
+      className="card-3d bg-white rounded-xl shadow-lg overflow-hidden transform-gpu"
       variants={cardVariants}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
-      whileHover={{ 
-        y: -10, 
-        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-        transition: { duration: 0.3 }
-      }}
+      whileHover="hover"
     >
       <div className="relative w-full h-full p-8">
+        {/* Background glow effect on hover */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-red-50 to-transparent opacity-0"
+          initial={{ opacity: 0 }}
+          whileHover={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        />
+        
         {/* Icon Circle with Animation */}
         <motion.div 
-          className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-6 glow-on-hover"
+          className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-6 relative z-10"
           variants={iconVariants}
-          whileHover="hover"
         >
           <motion.div 
             className="text-synergy-red"
-            whileHover={{ color: "#ff3366", scale: 1.1 }}
-            transition={{ duration: 0.2 }}
           >
             {icon}
           </motion.div>
@@ -106,7 +137,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
 
         {/* Category Tag with Animation */}
         <motion.span 
-          className="inline-block px-4 py-1 bg-red-50 text-synergy-red text-sm rounded-full mb-4"
+          className="inline-block px-4 py-1 bg-red-50 text-synergy-red text-sm rounded-full mb-4 relative z-10"
           variants={tagVariants}
         >
           {category}
@@ -114,7 +145,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
 
         {/* Content with Animation */}
         <motion.h3 
-          className="text-2xl font-heading font-bold text-synergy-dark mb-3"
+          className="text-2xl font-heading font-bold text-synergy-dark mb-3 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: delay * 0.2 + 0.6 }}
@@ -123,7 +154,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
         </motion.h3>
         
         <motion.p 
-          className="text-gray-600 mb-6"
+          className="text-gray-600 mb-6 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: delay * 0.2 + 0.7 }}
@@ -136,13 +167,20 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, cat
           initial={{ opacity: 0, y: 10 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
           transition={{ duration: 0.5, delay: delay * 0.2 + 0.8 }}
-          className="text-synergy-red font-medium flex items-center"
+          className="text-synergy-red font-medium flex items-center relative z-10"
           whileHover={{ x: 5 }}
         >
           <span>Learn more</span>
-          <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <motion.svg 
+            className="w-4 h-4 ml-1" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+            initial={{ x: 0, opacity: 0.7 }}
+            whileHover={arrowAnimation}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          </motion.svg>
         </motion.div>
       </div>
     </motion.div>

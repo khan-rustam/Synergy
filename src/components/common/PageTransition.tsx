@@ -259,7 +259,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children, className = '
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1, duration: 0.5 }}
             >
-              Loading Experience
+              Loading .........
             </motion.p>
           </motion.div>
         </motion.div>

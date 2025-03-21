@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Megaphone } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../store/authSlice';
@@ -117,19 +117,17 @@ const Navbar: React.FC = () => {
             onClick={scrollToTop}
           >
             <motion.div
-              whileHover={{ rotate: 360 }}
+              whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.5 }}
               className="relative"
             >
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-synergy-red/20 to-synergy-red/10 blur-lg" />
-              <Megaphone className="h-8 w-8 md:h-8 md:w-8 text-synergy-red bg-gradient-to-r from-synergy-red to-red-600 bg-clip-text mr-2 transform transition-transform duration-300 group-hover:scale-110 relative z-10" />
+              <img 
+                src="/src/assets/logo-white.png" 
+                alt="Synergy Logo" 
+                className="h-10 w-auto mr-2 transform transition-transform duration-300 group-hover:scale-110 relative z-10"
+              />
             </motion.div>
-            <span
-              className="font-heading font-bold text-2xl md:text-xl transition-colors duration-300"
-              style={logoGradientStyle}
-            >
-              Synergy
-            </span>
           </Link>
 
           {/* Desktop Navigation */}

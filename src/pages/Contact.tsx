@@ -289,7 +289,7 @@ const Contact: React.FC = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-white">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Contact Form */}
@@ -359,56 +359,96 @@ const Contact: React.FC = () => {
               <ScrollReveal variant="fadeLeft" delay={0.4}>
                 <BusinessHoursCard />
               </ScrollReveal>
-              
-              
             </div>
           </div>
         </div>
       </section>
 
       {/* Map Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <ScrollReveal className="order-2 lg:order-1" variant="fadeRight">
-              <div className="rounded-xl overflow-hidden shadow-lg h-[300px]">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3559.1757538408795!2d75.7885054!3d26.8682361!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db5bfb5c25f63%3A0xdcc3b5c5e1a8a0c0!2sJaipur%2C%20Rajasthan!5e0!3m2!1sen!2sin!4v1646569735000!5m2!1sen!2sin"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  title="Office Location"
-                ></iframe>
-              </div>
-            </ScrollReveal>
-            
-            <ScrollReveal className="order-1 lg:order-2" variant="fadeLeft">
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <h2 className="text-2xl md:text-3xl font-heading font-bold text-synergy-dark mb-3">Find Our Office</h2>
-                <div className="w-16 h-1 bg-synergy-red mb-6"></div>
-                <p className="text-gray-600 mb-6">
-                  We're conveniently located in the heart of Jaipur's business district, easily accessible by public transportation and with ample parking available.
-                </p>
-                <div className="flex items-start mb-4">
-                  <div className="w-10 h-10 rounded-full bg-synergy-red/10 flex items-center justify-center flex-shrink-0 mr-4">
-                    <MapPin className="text-synergy-red" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-700">Our Address</h4>
-                    <address className="not-italic text-gray-600 mt-1">
-                      123 Advertising Avenue,<br />
-                      Media District, Jaipur,<br />
-                      Rajasthan 302001
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-heading font-bold text-synergy-dark mb-3">Our Locations</h2>
+              <div className="w-20 h-1 bg-synergy-red mx-auto mb-6"></div>
+              <p className="text-lg text-gray-600">
+                Visit us at our convenient locations in Jaipur and Gurugram
+              </p>
+            </div>
+
+            <div className="space-y-12">
+              {/* Main Branch */}
+              <ScrollReveal className="bg-white rounded-xl shadow-lg overflow-hidden" variant="fadeUp">
+                <div className="grid grid-cols-1 lg:grid-cols-3">
+                  <div className="p-8 lg:col-span-1">
+                    <h3 className="text-2xl font-bold mb-3">Main Branch - Jaipur</h3>
+                    <div className="w-16 h-1 bg-synergy-red mb-6"></div>
+                    <address className="not-italic text-gray-600 mb-6 text-lg">
+                      94/148, Madhyam Marg, Mansarovar Sector 9,<br />
+                      SFS, Mansarovar, Jaipur,<br />
+                      Rajasthan 302020
                     </address>
+                    <div className="flex flex-col space-y-3 mb-6">
+                      <a href="tel:+917230062430" className="text-synergy-red hover:text-red-700 transition-colors flex items-center text-lg">
+                        <Phone className="h-5 w-5 mr-3" /> +91 72300 62430
+                      </a>
+                      <a href="mailto:info@synergyooh.com" className="text-synergy-red hover:text-red-700 transition-colors flex items-center text-lg">
+                        <Mail className="h-5 w-5 mr-3" /> info@synergyooh.com
+                      </a>
+                    </div>
+                  </div>
+                  <div className="h-[400px] lg:h-auto lg:col-span-2">
+                    <iframe
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3559.713112431118!2d75.76814211105857!3d26.849075676587915!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db5c327c429fb%3A0xb44d8260a266f5cb!2sSynergy!5e0!3m2!1sen!2sin!4v1742551008705!5m2!1sen!2sin"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      title="Jaipur Office Location"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      className="w-full h-full"
+                    ></iframe>
                   </div>
                 </div>
-                <p className="text-gray-600 mt-6">
-                  Need directions? Feel free to <a href="tel:+919876543210" className="text-synergy-red font-medium">call us</a> or <a href="mailto:info@synergyooh.com" className="text-synergy-red font-medium">email us</a> for assistance.
-                </p>
-              </div>
-            </ScrollReveal>
+              </ScrollReveal>
+
+              {/* Second Branch */}
+              <ScrollReveal className="bg-white rounded-xl shadow-lg overflow-hidden" variant="fadeUp">
+                <div className="grid grid-cols-1 lg:grid-cols-3">
+                  <div className="p-8 lg:col-span-1">
+                    <h3 className="text-2xl font-bold mb-3">Branch Office - Gurugram</h3>
+                    <div className="w-16 h-1 bg-synergy-red mb-6"></div>
+                    <address className="not-italic text-gray-600 mb-6 text-lg">
+                      Plot no. 4, 2nd Floor, Minarch Tower,<br />
+                      Sector-44, Gurugram,<br />
+                      Haryana 122003
+                    </address>
+                    <div className="flex flex-col space-y-3 mb-6">
+                      <a href="tel:+919414072430" className="text-synergy-red hover:text-red-700 transition-colors flex items-center text-lg">
+                        <Phone className="h-5 w-5 mr-3" /> +91 94140 72430
+                      </a>
+                      <a href="mailto:info@synergyooh.com" className="text-synergy-red hover:text-red-700 transition-colors flex items-center text-lg">
+                        <Mail className="h-5 w-5 mr-3" /> info@synergyooh.com
+                      </a>
+                    </div>
+                  </div>
+                  <div className="h-[400px] lg:h-auto lg:col-span-2">
+                    <iframe 
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d438.4771828950968!2d77.0697489839282!3d28.454918453114892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d18ee7aac203d%3A0x4a803e5e1fadda2c!2sMinarch%20Tower!5e0!3m2!1sen!2sin!4v1742551084395!5m2!1sen!2sin" 
+                      width="100%" 
+                      height="100%" 
+                      style={{ border: 0 }} 
+                      allowFullScreen 
+                      loading="lazy" 
+                      title="Gurugram Office Location"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      className="w-full h-full"
+                    ></iframe>
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
           </div>
         </div>
       </section>
@@ -500,12 +540,12 @@ const ContactInfoCard: React.FC = () => (
         title="Phone"
         content={
           <div>
-            <a href="tel:+919876543210" className="hover:text-synergy-red transition-colors">
-              +91 98765 43210
+            <a href="tel:+917230062430" className="hover:text-synergy-red transition-colors">
+              +91 72300 62430
             </a>
             <br />
-            <a href="tel:+919876543211" className="hover:text-synergy-red transition-colors">
-              +91 98765 43211
+            <a href="tel:+919414072430" className="hover:text-synergy-red transition-colors">
+              +91 94140 72430
             </a>
           </div>
         }
@@ -524,9 +564,10 @@ const ContactInfoCard: React.FC = () => (
         title="Address"
         content={
           <address className="not-italic">
-            123 Advertising Avenue,<br />
-            Media District, Jaipur,<br />
-            Rajasthan 302001
+            <strong>Main Branch:</strong><br />
+            94/148, Madhyam Marg, Mansarovar Sector 9,<br />
+            SFS, Mansarovar, Jaipur,<br />
+            Rajasthan 302020
           </address>
         }
       />
